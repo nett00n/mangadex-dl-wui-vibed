@@ -1,0 +1,49 @@
+services:
+  server:
+    image: docker.io/5mdt/mangadex-dl-server
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
+    ports:
+      - "5000:5000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+    volumes:
+      - downloads_cache:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    image: docker.io/5mdt/mangadex-dl-worker
+    build:
+      context: .
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
+    command: rq worker --url redis://redis:6379/0
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+    volumes:
+      - downloads_cache:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+
+volumes:
+  downloads_cache:
+  redis_data:

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mangadex-dl-wui</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>mangadex-dl-wui</h1>
+        <p>Web UI for downloading manga from MangaDex</p>
+
+        <form id="download-form">
+            <div class="form-group">
+                <label for="manga-url">MangaDex URL:</label>
+                <input
+                    type="url"
+                    id="manga-url"
+                    name="url"
+                    placeholder="https://mangadex.org/title/..."
+                    required
+                >
+            </div>
+            <button type="submit">Download</button>
+        </form>
+
+        <div id="status" class="status-container"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

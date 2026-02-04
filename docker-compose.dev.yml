@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: .
+      target: runtime
+    command: flask --app app run --host 0.0.0.0 --port 5000 --debug
+    environment:
+      FLASK_DEBUG: "1"
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+          ignore:
+            - __pycache__/
+        - action: rebuild
+          path: pyproject.toml
+
+  worker:
+    command: rq worker --url redis://redis:6379/0 --logging_level DEBUG
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+          ignore:
+            - __pycache__/
+        - action: rebuild
+          path: pyproject.toml

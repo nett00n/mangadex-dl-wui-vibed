@@ -5,7 +5,11 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:pypi.org)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(sudo docker compose build:*)",
+      "Bash(sudo docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(sudo docker images:*)"
     ]
   }
 }
