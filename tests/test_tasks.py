@@ -1,11 +1,17 @@
 """Tests for RQ task management."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import fakeredis
 from rq import Queue
 
-from app.tasks import cancel_job, enqueue_download, get_job_result, get_job_status
+from app.tasks import (
+    cancel_job,
+    enqueue_download,
+    get_job_result,
+    get_job_status,
+    list_queued_jobs,
+)
 
 
 def test_enqueue_download(fake_redis_conn: fakeredis.FakeRedis) -> None:
@@ -113,8 +119,9 @@ def test_failed_job_status(fake_redis_conn: fakeredis.FakeRedis) -> None:
         queue = Queue(connection=fake_redis_conn, is_async=False)
         mock_get_queue.return_value = queue
 
-        # Create failed job
-        job = queue.enqueue(lambda: None)
+        # Create failed job mock with exc_info attribute
+        job = MagicMock()
+        job.id = "test-job-id"
         job._status = "failed"
         job.exc_info = "Error message"
 
@@ -157,15 +164,14 @@ def test_concurrent_status_queries(fake_redis_conn: fakeredis.FakeRedis) -> None
 def test_list_queued_jobs(fake_redis_conn: fakeredis.FakeRedis) -> None:
     """Test listing queued jobs (UT-TSK-008)."""
     with patch("app.tasks.get_queue") as mock_get_queue:
-        queue = Queue(connection=fake_redis_conn, is_async=False)
-        mock_get_queue.return_value = queue
+        # Create mock queue with mock jobs
+        mock_queue = MagicMock()
+        mock_jobs = [MagicMock(id=f"job-{i}") for i in range(5)]
+        mock_queue.jobs = mock_jobs
+        mock_get_queue.return_value = mock_queue
 
-        # Enqueue 5 jobs
-        for _ in range(5):
-            queue.enqueue(lambda: None)
-
-        # Get queued jobs
-        queued = queue.jobs
+        # Call the actual function
+        queued = list_queued_jobs()
 
         assert len(queued) == 5
 
