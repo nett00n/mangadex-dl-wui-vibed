@@ -1,5 +1,10 @@
 """RQ worker job definitions."""
 
+from rq import get_current_job
+
+from app.config import Config
+from app.downloader import download_manga
+
 
 def perform_download_job(url: str) -> list[str]:
     """Execute a manga download job.
@@ -12,5 +17,17 @@ def perform_download_job(url: str) -> list[str]:
     Returns:
         list[str]: List of downloaded CBZ file paths
     """
-    # TODO: Implement download job execution
-    pass
+    job = get_current_job()
+
+    if job:
+        job.meta["status"] = "downloading"
+        job.save_meta()
+
+    result = download_manga(url, Config.CACHE_DIR)
+
+    if job:
+        job.meta["status"] = "complete"
+        job.meta["file_count"] = len(result)
+        job.save_meta()
+
+    return result
