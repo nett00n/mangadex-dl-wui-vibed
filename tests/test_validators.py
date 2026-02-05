@@ -67,7 +67,7 @@ def test_invalid_mangadex_urls(url: str) -> None:
 
 def test_none_input() -> None:
     """Test that None input is rejected (UT-VAL-008)."""
-    assert is_valid_mangadex_url(None) is False  # type: ignore[arg-type]
+    assert is_valid_mangadex_url(None) is False
 
 
 def test_path_traversal() -> None:

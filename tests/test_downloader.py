@@ -98,7 +98,9 @@ def test_parse_progress_cached_chapters() -> None:
     progress = parse_progress(stdout)
 
     assert "cached" in progress
-    assert progress.get("cached", 0) > 0
+    cached_value = progress.get("cached", 0)
+    assert isinstance(cached_value, int)
+    assert cached_value > 0
 
 
 def test_download_manga_timeout(tmp_path: Path) -> None:

@@ -67,12 +67,14 @@ def test_job_status_transitions(fake_redis_conn: fakeredis.FakeRedis) -> None:
             job._status = "queued"
             mock_fetch.return_value = job
             status = get_job_status(job.id)
+            assert status is not None
             assert status["status"] in ["queued", "started", "finished"]
 
             # Then started
             job._status = "started"
             mock_fetch.return_value = job
             status = get_job_status(job.id)
+            assert status is not None
             assert status["status"] in ["started", "finished"]
 
             # Finally finished
@@ -80,6 +82,7 @@ def test_job_status_transitions(fake_redis_conn: fakeredis.FakeRedis) -> None:
             job._result = ["file1.cbz"]
             mock_fetch.return_value = job
             status = get_job_status(job.id)
+            assert status is not None
             assert status["status"] == "finished"
 
 
@@ -145,6 +148,9 @@ def test_concurrent_status_queries(fake_redis_conn: fakeredis.FakeRedis) -> None
             status3 = get_job_status(job.id)
 
             # All should return same status
+            assert status1 is not None
+            assert status2 is not None
+            assert status3 is not None
             assert status1["status"] == status2["status"] == status3["status"]
 
 
