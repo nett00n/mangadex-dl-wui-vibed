@@ -1,192 +1,170 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with the mangadex-dl-wui project.
+Mandatory rules for all code generation and modification in mangadex-dl-wui.
 
-## Project Overview
+**IMPORTANT:** Always read and reference [CONTRIBUTING.md](CONTRIBUTING.md) for complete project architecture, development workflows, API specifications, and implementation details.
 
-**mangadex-dl-wui** is a web UI wrapper for the `mangadex-dl` CLI tool. It provides a simple Flask-based interface to download manga from MangaDex and retrieve the results as CBZ files.
+## Environment
 
-### Architecture
+- Use the Python virtual environment **`.venv`** (NOT `venv`)
+- Activate with: `source .venv/bin/activate`
+- Do not use alternative environment managers (poetry, conda, etc.)
+- See `.env.example` for required environment variables
+
+## Principles
+
+- **KISS** (Keep It Simple, Stupid) and **YAGNI** (You Aren't Gonna Need It)
+- Apply DRY only when it improves clarity
+- Fail fast with explicit error messages
+- Prefer immutability where practical
+- Ensure operations are idempotent
+- Make changes small, reversible, and reviewable
+- Reduce nesting and cyclomatic complexity
+
+## Standards
+
+- Follow **PEP 8** and the **Zen of Python**
+- Prefer explicit over implicit
+- **TDD**: Tests required for all new behavior and bug fixes
+- Run formatters and tests **BEFORE and AFTER** changes
+
+## Documentation
+
+- Update docs for any change affecting behavior, configuration, interface, or workflow
+- Include documentation for:
+  - New features
+  - Changed behavior
+  - Removed/deprecated functionality
+  - Environment changes
+- If no doc update is required, state this explicitly in the change
+- **Changes without corresponding documentation are incomplete**
+
+## Project Context
+
+**mangadex-dl-wui** is a Flask-based web UI wrapper for the `mangadex-dl` CLI tool. It uses Redis + RQ for job queuing and subprocess execution for downloading manga from MangaDex.
+
+### Architecture Quick Reference
 
 ```
-Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->  subprocess: mangadex-dl
-   ^                                       |                       |
-   |--- polling /api/status/<id> ----------|                       |
-   |                                                                |
-   |--- GET /api/file/<id>/<name> ----> send_file(cbz) -----------|
+Browser --> Flask --> RQ (Redis) --> Worker --> subprocess: mangadex-dl
 ```
 
-**Key Design Decisions:**
-- Shell out to `mangadex-dl` CLI via `subprocess.run()`
-- **Redis + RQ** for job queue management and worker processes
-- Concurrent download limit enforced by RQ worker count
-- Polling for status updates (no WebSockets)
-- Persistent download cache with `mangadex-dl`'s native skip-downloaded logic
-- Auto-cleanup of expired task records (cached downloads persist longer)
-- Job persistence across restarts
+**Key Files:**
+- `app/downloader.py`: Safe subprocess wrapper (see `run_mangadex_dl()`)
+- `app/validators.py`: URL validation (ALWAYS validate before download)
+- `app/routes.py`: 4 HTTP endpoints
+- `app/config.py`: Environment variable configuration
 
-### Caching Strategy
+**For complete architecture details, see [CONTRIBUTING.md](CONTRIBUTING.md#project-architecture)**
 
-- **Persistent cache**: `CACHE_DIR` (default: `/downloads/cache`) stores all manga downloads
-- `mangadex-dl` invoked with `--path <CACHE_DIR>` to leverage native chapter skip logic
-- Re-downloading the same manga reuses existing CBZ files (near-instant)
-- Expired task records are cleaned up, but cached files have separate TTL
-- `CACHE_TTL_SECONDS` (default: 7 days) controls cache eviction
+## Critical Security Rules
 
-## Project Structure
+### Subprocess Safety
 
-```
-mangadex-dl-wui/
-├── CLAUDE.md
-├── docs/
-│   ├── frd.md                    # Functional Requirements
-│   ├── user-stories.md           # User stories with acceptance criteria
-│   └── test-cases.md             # Test case tables
-├── Dockerfile
-├── docker-compose.yml            # No container_name
-├── requirements.txt
-├── requirements-dev.txt
-├── pyproject.toml
-├── .pre-commit-config.yaml
-├── .gitignore
-├── app/
-│   ├── __init__.py               # Flask app factory
-│   ├── config.py                 # Config (paths, timeouts, TTLs, cache dir, Redis)
-│   ├── routes.py                 # 4 endpoints
-│   ├── downloader.py             # subprocess wrapper + cache-aware download
-│   ├── worker.py                 # RQ worker job definitions
-│   ├── tasks.py                  # RQ job enqueue/status helpers
-│   ├── cleanup.py                # Background cleanup (expired jobs, not cache)
-│   ├── validators.py             # MangaDex URL validation
-│   ├── templates/index.html
-│   └── static/{style.css,app.js}
-└── tests/
-    ├── conftest.py
-    ├── test_validators.py
-    ├── test_downloader.py
-    ├── test_tasks.py
-    ├── test_cleanup.py
-    ├── test_routes.py
-    └── test_integration.py
+**MANDATORY:** Use the safe wrapper in `app/downloader.py`:
+
+```python
+from app.downloader import run_mangadex_dl
+
+# URL must be validated first!
+returncode, stdout, stderr = run_mangadex_dl(url, cache_dir)
 ```
 
-## Development Workflow
+**NEVER:**
+- Use `shell=True` with subprocess
+- Pass unvalidated URLs to `run_mangadex_dl()`
+- Build command strings (use argument lists)
 
-### Setup
+**ALWAYS:**
+- Validate URLs with `validators.py` first
+- Use the `which()` check before execution
+- Handle subprocess errors explicitly
 
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+### URL Validation
 
-# Install dependencies
-pip install -r requirements.txt -r requirements-dev.txt
+```python
+from app.validators import validate_mangadex_url
 
-# Install pre-commit hooks
-pre-commit install
+# ALWAYS validate before processing
+if not validate_mangadex_url(url):
+    return {"error": "Invalid MangaDex URL"}, 400
 ```
 
-### Running the App
+## Docker and Compose
 
-```bash
-# Development mode (requires 3 terminals)
-
-# Terminal 1: Start Redis
-redis-server
-
-# Terminal 2: Start RQ worker(s)
-rq worker --with-scheduler
-
-# Terminal 3: Start Flask app
-flask --app app run --debug
-
-# Production mode (Docker - all services managed by compose)
-docker compose up --build
-```
-
-### Testing
-
-```bash
-# Run all tests with coverage
-pytest --cov=app --cov-report=term-missing
-
-# Run specific test file
-pytest tests/test_routes.py -v
-
-# Run with output
-pytest -s
-
-# Check pre-commit hooks
-pre-commit run --all-files
-```
-
-### Code Quality
-
-```bash
-# Format code
-black app/ tests/
-isort app/ tests/
-
-# Type checking
-mypy app/
-
-# Linting
-ruff check app/ tests/
-pylint app/
-
-# All quality checks (done by pre-commit)
-pre-commit run --all-files
-```
-
-## API Endpoints
-
-1. **`POST /api/download`**
-   - Body: `{"url": "https://mangadex.org/title/..."}`
-   - Returns: `{"task_id": "uuid"}`
-
-2. **`GET /api/status/<task_id>`**
-   - Returns: `{"status": "queued|running|completed|failed", "progress": {...}, "files": [...]}`
-
-3. **`GET /api/file/<task_id>/<filename>`**
-   - Serves CBZ file from cache
-
-4. **`GET /`**
-   - Serves the web UI
+- Use **`docker compose`** (NOT `docker-compose`)
+- Requires Docker Engine 20.10.0+ with Compose v2+
+- **NEVER** set `container_name` in docker-compose.yml
+- Use `sudo` for docker commands if needed
 
 ## Configuration
 
-Environment variables (see `app/config.py`):
-- `REDIS_URL`: Redis connection URL (default: `redis://localhost:6379/0`)
-- `CACHE_DIR`: Persistent download cache (default: `/downloads/cache`)
-- `TEMP_DIR`: Temporary task directories (default: `/tmp/mangadex-wui`)
-- `TASK_TTL_SECONDS`: Task record expiration (default: 3600)
-- `CACHE_TTL_SECONDS`: Cached file expiration (default: 604800 / 7 days)
-- `RQ_WORKER_COUNT`: Number of RQ workers (concurrent downloads, default: 3)
+All configuration via environment variables (see `.env.example`):
 
-## Key CLI Flags for mangadex-dl
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection (auth: `redis://:password@host:port/db`) |
+| `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
+| `TEMP_DIR` | `/tmp/mangadex-wui` | Temporary task directories |
+| `TASK_TTL_SECONDS` | `3600` | Task record expiration (1 hour) |
+| `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (7 days) |
+| `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
+
+## Development Workflow
+
+### Before Making Changes
 
 ```bash
-mangadex-dl \
-  --save-as cbz \
-  --path <CACHE_DIR> \
-  --input-pos "*" \
-  --progress-bar-layout none \
-  <url>
+source .venv/bin/activate
+pre-commit run --all-files
+pytest --cov=app
 ```
+
+### After Making Changes
+
+```bash
+black app/ tests/
+isort app/ tests/
+pytest --cov=app --cov-report=term-missing
+pre-commit run --all-files
+```
+
+### Code Quality Tools
+
+- **Formatting**: black, isort
+- **Type checking**: mypy
+- **Linting**: ruff, pylint
+- **Testing**: pytest with coverage
+
+**All enforced by pre-commit hooks**
+
+## API Endpoints Quick Reference
+
+1. `POST /api/download` - Submit download (body: `{"url": "..."}`)
+2. `GET /api/status/<task_id>` - Poll status
+3. `GET /api/file/<task_id>/<filename>` - Download CBZ
+4. `GET /` - Web UI
+
+**For complete API specs, see [CONTRIBUTING.md](CONTRIBUTING.md#api-reference)**
+
+## Testing Requirements
+
+- All new features require tests
+- All bug fixes require regression tests
+- Minimum coverage: maintain or improve current levels
+- Test files mirror source structure: `app/foo.py` → `tests/test_foo.py`
 
 ## Important Notes
 
-- **Redis is required** for queue management (RQ dependency)
-- Always use `docker compose` (not `docker-compose`)
-- Never set `container_name` in docker-compose.yml
-- Run formatters and tests BEFORE and AFTER changes
-- Use sudo for docker commands if needed
-- RQ workers handle concurrent download limits automatically
-- Task cleanup removes expired RQ jobs, NOT cached downloads
-- Cache directory is persistent and shared across tasks
+- Redis is required (RQ dependency)
+- RQ workers handle concurrency automatically
+- Task cleanup removes job records, NOT cached downloads
+- Cache uses `mangadex-dl`'s native skip logic for fast re-downloads
+- `--input-pos "*"` downloads all chapters without prompts
 
 ## References
 
+- [CONTRIBUTING.md](CONTRIBUTING.md) - **READ THIS for complete project details**
 - [mangadex-dl documentation](https://github.com/mansuf/mangadex-downloader)
 - [Functional Requirements](docs/frd.md)
 - [User Stories](docs/user-stories.md)
