@@ -1,12 +1,17 @@
 """Manga download functionality using mangadex-dl CLI."""
 
+import re
 import subprocess
 from pathlib import Path
 from shutil import which
 
+from app.validators import is_valid_mangadex_url
+
 
 def run_mangadex_dl(
-    url: str, cache_dir: str, timeout: int = 3600
+    url: str,
+    cache_dir: str,
+    timeout: int = 3600,
 ) -> tuple[int, str, str]:
     """Safely execute mangadex-dl CLI with validated arguments.
 
@@ -50,8 +55,7 @@ def run_mangadex_dl(
     proc = subprocess.run(
         args,
         check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
     )
@@ -69,8 +73,17 @@ def download_manga(url: str, cache_dir: str) -> list[str]:
         list[str]: List of downloaded CBZ file paths
 
     Raises:
+        Exception: If URL is invalid or directory doesn't exist
         RuntimeError: If mangadex-dl execution fails
     """
+    # Validate URL before processing
+    if not is_valid_mangadex_url(url):
+        raise Exception("Invalid MangaDex URL")
+
+    # Check directory exists
+    if not Path(cache_dir).exists():
+        raise Exception("Directory does not exist")
+
     returncode, stdout, stderr = run_mangadex_dl(url, cache_dir)
 
     if returncode != 0:
@@ -87,10 +100,25 @@ def parse_progress(stdout: str) -> dict[str, str | int]:
         stdout: Standard output from mangadex-dl command
 
     Returns:
-        dict: Parsed progress information
+        dict: Parsed progress information with keys:
+            - current: Current chapter number being downloaded
+            - total: Total number of chapters
+            - cached: Number of skipped (cached) chapters
     """
-    # TODO: Implement stdout parsing
-    pass
+    progress: dict[str, str | int] = {}
+
+    # Parse "Downloading chapter X of Y"
+    chapter_match = re.search(r"Downloading chapter (\d+) of (\d+)", stdout)
+    if chapter_match:
+        progress["current"] = int(chapter_match.group(1))
+        progress["total"] = int(chapter_match.group(2))
+
+    # Count "Skipped" occurrences for cached chapters
+    cached_count = stdout.count("Skipped")
+    if cached_count > 0:
+        progress["cached"] = cached_count
+
+    return progress
 
 
 def build_cli_args(url: str, cache_dir: str) -> list[str]:
@@ -103,8 +131,18 @@ def build_cli_args(url: str, cache_dir: str) -> list[str]:
     Returns:
         list[str]: Command arguments list
     """
-    # TODO: Implement CLI argument builder
-    pass
+    return [
+        "mangadex-dl",
+        "--save-as",
+        "cbz",
+        "--path",
+        cache_dir,
+        "--input-pos",
+        "*",
+        "--progress-bar-layout",
+        "none",
+        url,
+    ]
 
 
 def scan_for_cbz(directory: str) -> list[str]:
@@ -116,5 +154,5 @@ def scan_for_cbz(directory: str) -> list[str]:
     Returns:
         list[str]: List of CBZ file paths found
     """
-    # TODO: Implement directory scanning
-    pass
+    dir_path = Path(directory)
+    return [str(f.resolve()) for f in dir_path.glob("*.cbz")]
