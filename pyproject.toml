@@ -46,6 +46,11 @@ target-version = "py312"
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "COM", "C4", "PT", "SIM", "ARG"]
 ignore = ["S603", "S607"]  # subprocess calls are intentional
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "ARG001", "SIM", "S108"]  # asserts, unused args, simplify, and temp file checks OK in tests
+"app/routes.py" = ["ARG001"]  # unused args in stubs (TDD)
+"app/config.py" = ["S108"]  # /tmp usage is intentional per spec
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
@@ -54,6 +59,22 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true  # for mangadex-downloader
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_untyped_decorators = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.*"
+# Relax checking for stub implementations (TDD)
+allow_untyped_defs = true
+check_untyped_defs = false
+warn_return_any = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short --timeout=30"
+markers = [
+    "integration: end-to-end integration tests (may require Redis)",
+]

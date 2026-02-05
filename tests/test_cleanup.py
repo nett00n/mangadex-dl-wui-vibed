@@ -1,6 +1,178 @@
 """Tests for cleanup tasks."""
 
+import os
+import time
+from pathlib import Path
+from unittest.mock import patch
 
-def test_placeholder() -> None:
-    """Placeholder test to prevent pytest warnings."""
-    pass
+import pytest
+
+from app.cleanup import cleanup_cache, cleanup_temp_dirs, run_cleanup_loop
+
+
+def test_cleanup_expired_file(tmp_path: Path) -> None:
+    """Test cleanup removes expired files (UT-CLN-001)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create an old file
+    old_file = cache_dir / "old-manga.cbz"
+    old_file.write_bytes(b"old content")
+
+    # Set file modification time to 8 days ago (past default 7-day TTL)
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_file, (old_time, old_time))
+
+    # Run cleanup with 7-day TTL
+    cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # File should be removed
+    assert not old_file.exists()
+
+
+def test_cleanup_keeps_recent_file(tmp_path: Path) -> None:
+    """Test cleanup keeps recent files (UT-CLN-002)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create a recent file
+    recent_file = cache_dir / "recent-manga.cbz"
+    recent_file.write_bytes(b"recent content")
+
+    # Run cleanup with 7-day TTL
+    cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # File should still exist
+    assert recent_file.exists()
+
+
+def test_cleanup_keeps_active_job_files(tmp_path: Path) -> None:
+    """Test cleanup keeps files referenced by active jobs (UT-CLN-003)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create an old file
+    old_file = cache_dir / "active-manga.cbz"
+    old_file.write_bytes(b"active content")
+
+    # Set file modification time to 8 days ago
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_file, (old_time, old_time))
+
+    # Mock active jobs that reference this file
+    with patch("app.cleanup.get_active_job_files") as mock_get_files:
+        mock_get_files.return_value = [str(old_file)]
+
+        # Run cleanup
+        cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+        # File should still exist (referenced by active job)
+        assert old_file.exists()
+
+
+def test_cleanup_handles_permission_error(tmp_path: Path) -> None:
+    """Test cleanup handles permission errors gracefully (UT-CLN-004)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create a file
+    test_file = cache_dir / "test-manga.cbz"
+    test_file.write_bytes(b"test content")
+
+    # Set old time
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(test_file, (old_time, old_time))
+
+    # Mock os.remove to raise PermissionError
+    with patch("os.remove") as mock_remove:
+        mock_remove.side_effect = PermissionError("Access denied")
+
+        # Should not crash
+        try:
+            cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+        except PermissionError:
+            pytest.fail("cleanup_cache should handle PermissionError")
+
+
+def test_run_cleanup_loop(tmp_path: Path) -> None:
+    """Test cleanup loop runs one iteration (UT-CLN-005)."""
+    with patch("time.sleep") as mock_sleep:
+        # Make sleep raise StopIteration to exit loop after one iteration
+        mock_sleep.side_effect = StopIteration
+
+        with patch("app.cleanup.cleanup_cache") as mock_cleanup_cache:
+            with patch("app.cleanup.cleanup_temp_dirs") as mock_cleanup_temp:
+                try:
+                    run_cleanup_loop()
+                except StopIteration:
+                    pass
+
+                # Verify both cleanup functions were called
+                assert mock_cleanup_cache.called
+                assert mock_cleanup_temp.called
+
+
+def test_cleanup_empty_directory(tmp_path: Path) -> None:
+    """Test cleanup handles empty directory (UT-CLN-006)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Run cleanup on empty directory
+    result = cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # Should return 0 and not crash
+    assert result == 0 or result is None
+
+
+def test_cleanup_only_unreferenced_expired_files(tmp_path: Path) -> None:
+    """Test cleanup only removes unreferenced expired files (UT-CLN-007)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create multiple files
+    expired_file = cache_dir / "expired.cbz"
+    expired_file.write_bytes(b"expired")
+
+    referenced_file = cache_dir / "referenced.cbz"
+    referenced_file.write_bytes(b"referenced")
+
+    recent_file = cache_dir / "recent.cbz"
+    recent_file.write_bytes(b"recent")
+
+    # Make first two files old
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(expired_file, (old_time, old_time))
+    os.utime(referenced_file, (old_time, old_time))
+
+    # Mock active jobs that reference second file
+    with patch("app.cleanup.get_active_job_files") as mock_get_files:
+        mock_get_files.return_value = [str(referenced_file)]
+
+        # Run cleanup
+        cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+        # Only expired unreferenced file should be removed
+        assert not expired_file.exists()
+        assert referenced_file.exists()
+        assert recent_file.exists()
+
+
+def test_cleanup_temp_dirs(tmp_path: Path) -> None:
+    """Test cleanup removes completed job temp directories (UT-CLN-008)."""
+    temp_dir = tmp_path / "temp"
+    temp_dir.mkdir()
+
+    # Create temp directories for completed jobs
+    completed_job_dir = temp_dir / "job-completed-123"
+    completed_job_dir.mkdir()
+    (completed_job_dir / "file.txt").write_text("test")
+
+    with patch("app.cleanup.Config.TEMP_DIR", str(temp_dir)):
+        with patch("app.cleanup.is_job_completed") as mock_is_completed:
+            mock_is_completed.return_value = True
+
+            # Run cleanup (reads TEMP_DIR from config)
+            cleanup_temp_dirs()
+
+            # Completed job directory should be removed
+            assert not completed_job_dir.exists()
