@@ -16,7 +16,10 @@ import pytest
     ],
 )
 def test_config_defaults(
-    monkeypatch: pytest.MonkeyPatch, env_var: str, expected_value: object, test_id: str,
+    monkeypatch: pytest.MonkeyPatch,
+    env_var: str,
+    expected_value: object,
+    test_id: str,
 ) -> None:
     """Test that Config class has correct default values.
 
@@ -50,7 +53,10 @@ def test_config_defaults(
     ("env_var", "custom_value", "expected_value", "test_id"),
     [
         pytest.param(
-            "REDIS_URL", "redis://custom:6379/1", "redis://custom:6379/1", "UT-CFG-002",
+            "REDIS_URL",
+            "redis://custom:6379/1",
+            "redis://custom:6379/1",
+            "UT-CFG-002",
         ),
         pytest.param("CACHE_DIR", "/custom/cache", "/custom/cache", "UT-CFG-004"),
         pytest.param("TASK_TTL_SECONDS", "7200", 7200, "UT-CFG-006"),
@@ -124,10 +130,5 @@ def test_config_negative_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
 
     import app.config
 
-    importlib.reload(app.config)
-
-    # This will drive implementation to add validation
-    # For now, test that it gets converted to int
-    assert isinstance(app.config.Config.TASK_TTL_SECONDS, int)
-    # The implementation should validate this is > 0
-    assert app.config.Config.TASK_TTL_SECONDS > 0 or True  # Allow for now
+    with pytest.raises(ValueError, match="TASK_TTL_SECONDS must be >= 1"):
+        importlib.reload(app.config)
