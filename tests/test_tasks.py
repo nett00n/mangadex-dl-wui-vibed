@@ -1,3 +1,10 @@
+#
+# Copyright (c) - All Rights Reserved.
+#
+# This project is licenced under the GPLv3.
+# See the LICENSE file for more information.
+#
+
 """Tests for RQ task management."""
 
 from unittest.mock import MagicMock, patch

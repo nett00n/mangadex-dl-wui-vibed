@@ -1,3 +1,10 @@
+#
+# Copyright (c) - All Rights Reserved.
+#
+# This project is licenced under the GPLv3.
+# See the LICENSE file for more information.
+#
+
 """Browser-based UI tests using Playwright.
 
 These tests verify the JavaScript frontend functionality by testing

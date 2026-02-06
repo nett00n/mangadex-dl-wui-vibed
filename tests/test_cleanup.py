@@ -1,3 +1,10 @@
+#
+# Copyright (c) - All Rights Reserved.
+#
+# This project is licenced under the GPLv3.
+# See the LICENSE file for more information.
+#
+
 """Tests for cleanup tasks."""
 
 import os

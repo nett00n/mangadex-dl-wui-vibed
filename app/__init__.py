@@ -1,3 +1,10 @@
+#
+# Copyright (c) - All Rights Reserved.
+#
+# This project is licenced under the GPLv3.
+# See the LICENSE file for more information.
+#
+
 """Flask application factory for mangadex-dl-wui."""
 
 from flask import Flask

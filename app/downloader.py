@@ -1,3 +1,10 @@
+#
+# Copyright (c) - All Rights Reserved.
+#
+# This project is licenced under the GPLv3.
+# See the LICENSE file for more information.
+#
+
 """Manga download functionality using mangadex-dl CLI."""
 
 import re
