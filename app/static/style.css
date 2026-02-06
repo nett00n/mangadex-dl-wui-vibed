@@ -218,6 +218,18 @@ button:disabled {
     font-weight: 500;
 }
 
+.progress-fill.indeterminate {
+    width: 100%;
+    background: linear-gradient(90deg, #3498db 25%, #2980b9 50%, #3498db 75%);
+    background-size: 200% 100%;
+    animation: progress-indeterminate 1.5s linear infinite;
+}
+
+@keyframes progress-indeterminate {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
 /* Error message */
 .error-message {
     margin-top: 12px;

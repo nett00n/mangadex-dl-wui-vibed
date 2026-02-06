@@ -158,14 +158,13 @@ const UI = {
             </div>
         `;
 
-        // Add progress bar for running tasks
-        if (status.status === 'started' && status.progress) {
-            const percent = Math.round((status.progress.current / status.progress.total) * 100);
+        // Add progress indicator for running tasks (status-only, no chapter tracking)
+        if (status.status === 'started') {
             html += `
                 <div class="progress-container">
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percent}%">
-                            ${status.progress.current} / ${status.progress.total} (${percent}%)
+                        <div class="progress-fill indeterminate">
+                            Downloading...
                         </div>
                     </div>
                 </div>

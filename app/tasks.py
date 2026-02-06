@@ -46,7 +46,7 @@ def enqueue_download(url: str) -> str:
     return job.id
 
 
-def get_job_status(job_id: str) -> dict[str, str] | None:
+def get_job_status(job_id: str) -> dict[str, str | list[str]] | None:
     """Get the status of a job.
 
     Args:

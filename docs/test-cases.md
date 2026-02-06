@@ -117,7 +117,7 @@
 | JS-UI-003 | Empty URL shows client error | Submit empty form | HTML5 validation or JS error message | ✅ Passing | US-1.2 |
 | JS-UI-004 | Invalid URL shows server error | Submit invalid URL | Error alert with "Invalid" message | ✅ Passing | US-1.2 |
 | JS-UI-005 | Display queued status | Submit URL | Task card shows "queued" badge | ✅ Passing | US-1.3 |
-| JS-UI-006 | Display running status with progress | Task transitions to started | Progress bar with percentage visible | ✅ Passing | US-1.3 |
+| JS-UI-006 | Display running status with indeterminate progress | Task transitions to started | Indeterminate progress bar with "Downloading..." text visible | ✅ Passing | US-1.3 |
 | JS-UI-007 | Display completed status with files | Task completes | File list with download links visible | ✅ Passing | US-1.4 |
 | JS-UI-008 | Display failed status with error | Task fails | "failed" badge + error message visible | ✅ Passing | US-1.5 |
 | JS-UI-009 | Auto-polling starts after submit | Submit URL | Status updates automatically (polling) | ✅ Passing | US-1.3 |

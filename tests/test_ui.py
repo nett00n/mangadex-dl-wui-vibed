@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 import pytest
 from playwright.sync_api import Page, expect
 
-
 if TYPE_CHECKING:
     from tests.conftest import LiveServer
 
@@ -21,7 +20,10 @@ pytestmark = pytest.mark.ui
 # Phase 1: Form Submission Tests
 
 
-def test_form_renders_with_input_and_button(page: Page, live_server: "LiveServer") -> None:
+def test_form_renders_with_input_and_button(
+    page: Page,
+    live_server: "LiveServer",
+) -> None:
     """JS-UI-001: Form renders with input and button (US-1.1)."""
     page.goto(live_server.url)
 
@@ -41,7 +43,10 @@ def test_form_renders_with_input_and_button(page: Page, live_server: "LiveServer
     expect(submit_button).to_have_text("Download")
 
 
-def test_submit_valid_url_returns_task_card(page: Page, live_server: "LiveServer") -> None:
+def test_submit_valid_url_returns_task_card(
+    page: Page,
+    live_server: "LiveServer",
+) -> None:
     """JS-UI-002: Submit valid URL returns task card (US-1.1)."""
     page.goto(live_server.url)
 
@@ -122,8 +127,11 @@ def test_display_queued_status(page: Page, live_server: "LiveServer") -> None:
     expect(status_badge).to_contain_text("queued")
 
 
-def test_display_running_status_with_progress(page: Page, live_server_with_mocks: "LiveServer") -> None:
-    """JS-UI-006: Display running status with progress (US-1.3)."""
+def test_display_running_status_with_progress(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
+    """JS-UI-006: Display running status with indeterminate progress (US-1.3)."""
     page.goto(live_server_with_mocks.url)
 
     url_input = page.locator("#manga-url")
@@ -134,19 +142,27 @@ def test_display_running_status_with_progress(page: Page, live_server_with_mocks
     task_card = page.locator(".task-card")
     expect(task_card).to_be_visible(timeout=5000)
 
-    # Status should eventually show "started" with progress
+    # Status should eventually show "started" with indeterminate progress
     # (This assumes polling is working)
     status_badge = task_card.locator(".status-badge")
 
     # Wait for status to update from queued to started
     expect(status_badge).to_contain_text("started", timeout=10000)
 
-    # Check for progress bar
+    # Check for indeterminate progress bar with "Downloading..." text
     progress_bar = task_card.locator(".progress-bar")
     expect(progress_bar).to_be_visible()
 
+    # Verify indeterminate progress indicator
+    progress_fill = task_card.locator(".progress-fill.indeterminate")
+    expect(progress_fill).to_be_visible()
+    expect(progress_fill).to_contain_text("Downloading...")
 
-def test_display_completed_status_with_files(page: Page, live_server_with_mocks: "LiveServer") -> None:
+
+def test_display_completed_status_with_files(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-007: Display completed status with files (US-1.4)."""
     page.goto(live_server_with_mocks.url)
 
@@ -171,7 +187,10 @@ def test_display_completed_status_with_files(page: Page, live_server_with_mocks:
     expect(download_link.first).to_be_visible()
 
 
-def test_display_failed_status_with_error(page: Page, live_server_with_mocks: "LiveServer") -> None:
+def test_display_failed_status_with_error(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-008: Display failed status with error (US-1.5)."""
     page.goto(live_server_with_mocks.url)
 
@@ -195,7 +214,10 @@ def test_display_failed_status_with_error(page: Page, live_server_with_mocks: "L
 # Phase 3: Polling Tests
 
 
-def test_auto_polling_starts_after_submit(page: Page, live_server: "LiveServer") -> None:
+def test_auto_polling_starts_after_submit(
+    page: Page,
+    live_server: "LiveServer",
+) -> None:
     """JS-UI-009: Auto-polling starts after submit (US-1.3)."""
     page.goto(live_server.url)
 
@@ -219,7 +241,10 @@ def test_auto_polling_starts_after_submit(page: Page, live_server: "LiveServer")
     # If we got here without errors, polling is working
 
 
-def test_polling_stops_on_completion(page: Page, live_server_with_mocks: "LiveServer") -> None:
+def test_polling_stops_on_completion(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-010: Polling stops on completion (US-1.3)."""
     page.goto(live_server_with_mocks.url)
 
@@ -241,7 +266,10 @@ def test_polling_stops_on_completion(page: Page, live_server_with_mocks: "LiveSe
     expect(status_badge).to_contain_text("finished")
 
 
-def test_polling_stops_on_failure(page: Page, live_server_with_mocks: "LiveServer") -> None:
+def test_polling_stops_on_failure(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-011: Polling stops on failure (US-1.5)."""
     page.goto(live_server_with_mocks.url)
 
@@ -266,7 +294,10 @@ def test_polling_stops_on_failure(page: Page, live_server_with_mocks: "LiveServe
 # Phase 4: File Downloads
 
 
-def test_download_file_link_works(page: Page, live_server_with_mocks: "LiveServer") -> None:
+def test_download_file_link_works(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-012: Download file link works (US-1.4)."""
     page.goto(live_server_with_mocks.url)
 
@@ -343,7 +374,10 @@ def test_button_disabled_during_submit(page: Page, live_server: "LiveServer") ->
     expect(submit_button).to_be_enabled(timeout=5000)
 
 
-def test_retry_option_on_failure(page: Page, live_server_with_mocks: "LiveServer") -> None:
+def test_retry_option_on_failure(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
     """JS-UI-015: Retry option on failure (US-1.5)."""
     page.goto(live_server_with_mocks.url)
 

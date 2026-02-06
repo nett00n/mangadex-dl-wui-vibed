@@ -109,7 +109,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 **Requirements**:
 - FR-4.1: Expose GET endpoint `/api/status/<task_id>`
 - FR-4.2: Return current task status (queued, running, completed, failed)
-- FR-4.3: Return progress data (current chapter, total chapters, percentage)
+- FR-4.3: Return progress indication (status-only transitions; chapter-level progress deferred)
 - FR-4.4: Return list of completed CBZ files
 - FR-4.5: Return error message if task failed
 - FR-4.6: Return 404 if task ID not found

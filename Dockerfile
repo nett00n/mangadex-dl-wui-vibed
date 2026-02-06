@@ -40,6 +40,10 @@ ENV PATH="/root/.local/bin:${PATH}"
 # Create non-root user
 RUN adduser -D -u 1001 -s /bin/sh app
 
+# Create cache directory with proper permissions
+RUN mkdir -p /downloads/cache && \
+    chown -R app:app /downloads
+
 WORKDIR /app
 
 # Copy project files for dependency installation

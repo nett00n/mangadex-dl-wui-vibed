@@ -54,9 +54,10 @@
 **Acceptance Criteria**:
 - Given I have submitted a download request
 - When the download is processing
-- Then I see the current status (queued, running, completed)
-- And I see progress information (current chapter, total chapters, percentage)
+- Then I see the current status (queued, downloading, completed, failed)
+- And I see an indeterminate progress indicator while downloading
 - And the information updates automatically via polling
+- Note: Chapter-level progress tracking (current/total) is deferred; status-only transitions are tracked
 
 **Related FRs**: FR-1.3, FR-1.4, FR-4.1, FR-4.2, FR-4.3
 **Status**: ✅ **Implemented** - Phase 5 (JS-UI-005, JS-UI-006, JS-UI-009, JS-UI-010, tests/test_ui.py)

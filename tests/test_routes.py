@@ -104,6 +104,30 @@ def test_status_completed(client: FlaskClient) -> None:
         assert "files" in data
 
 
+def test_status_completed_enriches_with_files(client: FlaskClient) -> None:
+    """Test GET /api/status/<id> enriches finished jobs with files."""
+    with (
+        patch("app.routes.get_job_status") as mock_get_status,
+        patch("app.routes.get_job_result") as mock_get_result,
+    ):
+        # get_job_status returns finished without files
+        mock_get_status.return_value = {"status": "finished"}
+
+        # get_job_result provides the files
+        mock_get_result.return_value = ["manga-ch1.cbz", "manga-ch2.cbz"]
+
+        response = client.get("/api/status/test-id")
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["status"] == "finished"
+        assert "files" in data
+        assert data["files"] == ["manga-ch1.cbz", "manga-ch2.cbz"]
+
+        # Verify get_job_result was called
+        mock_get_result.assert_called_once_with("test-id")
+
+
 def test_status_failed(client: FlaskClient) -> None:
     """Test GET /api/status/<id> for failed job (IT-API-007)."""
     with patch("app.routes.get_job_status") as mock_get_status:

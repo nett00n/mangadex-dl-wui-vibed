@@ -63,6 +63,12 @@ def api_status(task_id: str) -> tuple[Response, int]:
     if status is None:
         return jsonify({"error": "Task not found"}), 404
 
+    # Include file list for finished tasks
+    if status.get("status") == "finished":
+        result = get_job_result(task_id)
+        if result:
+            status["files"] = result
+
     return jsonify(status), 200
 
 

@@ -188,7 +188,6 @@ def mock_task_status() -> dict[str, dict[str, str | dict[str, int] | list[str]]]
     return {
         "test-running": {
             "status": "started",
-            "progress": {"current": 5, "total": 10},
         },
         "test-completed": {
             "status": "finished",
