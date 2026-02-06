@@ -12,19 +12,15 @@ from flask.testing import FlaskClient
 @pytest.mark.integration
 def test_full_workflow(client_with_dirs: FlaskClient, cache_dir: Path) -> None:
     """Test full download workflow: submit → poll → download (IT-E2E-001)."""
-    # Create a fake CBZ that will be "downloaded"
-    fake_cbz = cache_dir / "test-manga.cbz"
-
     with patch("app.routes.is_valid_mangadex_url") as mock_validate:
         mock_validate.return_value = True
 
         with patch("subprocess.run") as mock_run:
-            # Simulate successful download
-            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-
-            # After subprocess runs, create the CBZ file
+            # After subprocess runs, create the CBZ file in subdirectory
             def create_cbz(*args: object, **kwargs: object) -> MagicMock:
-                fake_cbz.write_bytes(b"manga content")
+                manga_dir = cache_dir / "Test Manga"
+                manga_dir.mkdir(exist_ok=True)
+                (manga_dir / "chapter-1.cbz").write_bytes(b"manga content")
                 return MagicMock(returncode=0, stdout="", stderr="")
 
             mock_run.side_effect = create_cbz
@@ -72,8 +68,10 @@ def test_concurrent_downloads(client_with_dirs: FlaskClient, cache_dir: Path) ->
 @pytest.mark.integration
 def test_cached_download_reuse(client_with_dirs: FlaskClient, cache_dir: Path) -> None:
     """Test cached download reuse (IT-E2E-003)."""
-    # Create a pre-existing cached file
-    cached_file = cache_dir / "cached-manga.cbz"
+    # Create a pre-existing cached file in subdirectory
+    manga_dir = cache_dir / "Cached Manga"
+    manga_dir.mkdir()
+    cached_file = manga_dir / "chapter-1.cbz"
     cached_file.write_bytes(b"cached content")
 
     with patch("app.routes.is_valid_mangadex_url") as mock_validate:
@@ -244,10 +242,12 @@ def test_two_clients_poll_same_task(client_with_dirs: FlaskClient) -> None:
 @pytest.mark.integration
 def test_multi_chapter_download(client_with_dirs: FlaskClient, cache_dir: Path) -> None:
     """Test multi-chapter download with large result set (IT-E2E-010)."""
-    # Create multiple chapter files
+    # Pre-create the files and directory structure
+    manga_dir = cache_dir / "Long Manga"
+    manga_dir.mkdir(exist_ok=True)
     chapters = []
     for i in range(1, 21):  # 20 chapters
-        chapter_file = cache_dir / f"manga-ch{i:03d}.cbz"
+        chapter_file = manga_dir / f"manga-ch{i:03d}.cbz"
         chapter_file.write_bytes(f"Chapter {i} content".encode())
         chapters.append(str(chapter_file))
 
@@ -255,6 +255,7 @@ def test_multi_chapter_download(client_with_dirs: FlaskClient, cache_dir: Path) 
         mock_validate.return_value = True
 
         with patch("subprocess.run") as mock_run:
+            # Subprocess would have created the files (already done above)
             mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
             # Submit download
@@ -263,12 +264,11 @@ def test_multi_chapter_download(client_with_dirs: FlaskClient, cache_dir: Path) 
                 json={"url": "https://mangadex.org/title/long-manga"},
             )
             assert response.status_code == 200
+            task_id = response.get_json()["task_id"]
 
             # Mock job result with all chapters
             with patch("app.routes.get_job_result") as mock_result:
                 mock_result.return_value = chapters
-
-                task_id = response.get_json()["task_id"]
 
                 # Verify all files are accessible (test first and last)
                 response = client_with_dirs.get(f"/api/file/{task_id}/manga-ch001.cbz")

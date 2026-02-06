@@ -115,9 +115,13 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
 
 - **Persistent cache**: `CACHE_DIR` (default: `/downloads/cache`) stores all manga downloads
 - `mangadex-dl` invoked with `--path <CACHE_DIR>` to leverage native chapter skip logic
+- **Directory structure**: `mangadex-dl` creates per-manga subdirectories (`CACHE_DIR/<Manga Title>/`)
+- `scan_for_cbz` uses recursive glob (`rglob`) to find CBZ files in all subdirectories
+- `download_manga` snapshots files before/after download to return only newly created files per job
 - Re-downloading the same manga reuses existing CBZ files (near-instant)
 - Task records expire after `TASK_TTL_SECONDS` (default: 1 hour)
 - Cached files expire after `CACHE_TTL_SECONDS` (default: 7 days)
+- Cleanup handles files in subdirectories and removes empty directories
 
 ### Project Structure
 

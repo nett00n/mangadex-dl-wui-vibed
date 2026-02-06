@@ -64,7 +64,9 @@ def is_job_completed(job_id: str) -> bool:
 
 
 def cleanup_cache(cache_dir: str, ttl: int) -> int:
-    """Remove cached files older than TTL.
+    """Remove cached files older than TTL, including files in subdirectories.
+
+    Also removes empty subdirectories after file cleanup.
 
     Args:
         cache_dir: Directory containing cached files
@@ -77,17 +79,14 @@ def cleanup_cache(cache_dir: str, ttl: int) -> int:
     if not cache_path.exists():
         return 0
 
-    # Get files referenced by active jobs
-    active_files = get_active_job_files()
+    # Get files referenced by active jobs (convert to set for O(1) lookup)
+    active_files = set(get_active_job_files())
 
     removed_count = 0
     current_time = time.time()
 
-    # Iterate through all files in cache directory
-    for file_path in cache_path.glob("*"):
-        if not file_path.is_file():
-            continue
-
+    # First pass: remove expired CBZ files (recursively in subdirectories)
+    for file_path in cache_path.rglob("*.cbz"):
         # Skip files referenced by active jobs
         if str(file_path) in active_files or str(file_path.resolve()) in active_files:
             continue
@@ -106,6 +105,21 @@ def cleanup_cache(cache_dir: str, ttl: int) -> int:
         except Exception:  # noqa: S112
             # Skip other errors
             continue
+
+    # Second pass: remove empty subdirectories
+    # Iterate from deepest to shallowest to handle nested empty dirs
+    for dir_path in sorted(
+        cache_path.rglob("*"),
+        key=lambda p: len(p.parts),
+        reverse=True,
+    ):
+        if dir_path.is_dir() and dir_path != cache_path:
+            try:
+                # rmdir only removes empty directories (safe operation)
+                dir_path.rmdir()
+            except OSError:
+                # Directory not empty or other error - skip
+                continue
 
     return removed_count
 

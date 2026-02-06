@@ -176,3 +176,74 @@ def test_cleanup_temp_dirs(tmp_path: Path) -> None:
 
             # Completed job directory should be removed
             assert not completed_job_dir.exists()
+
+
+def test_cleanup_expired_files_in_subdirectories(tmp_path: Path) -> None:
+    """Test cleanup removes expired files in manga subdirectories."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create manga subdirectory with old files
+    manga_dir = cache_dir / "Test Manga"
+    manga_dir.mkdir()
+    old_chapter = manga_dir / "chapter-1.cbz"
+    old_chapter.write_bytes(b"old content")
+
+    # Set file modification time to 8 days ago
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_chapter, (old_time, old_time))
+
+    # Run cleanup with 7-day TTL
+    cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # File should be removed
+    assert not old_chapter.exists()
+
+
+def test_cleanup_removes_empty_subdirectories(tmp_path: Path) -> None:
+    """Test cleanup removes empty manga subdirectories after file deletion."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create manga subdirectory with old file
+    manga_dir = cache_dir / "Test Manga"
+    manga_dir.mkdir()
+    old_chapter = manga_dir / "chapter-1.cbz"
+    old_chapter.write_bytes(b"old content")
+
+    # Set file modification time to 8 days ago
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_chapter, (old_time, old_time))
+
+    # Run cleanup
+    cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # Both file and directory should be removed
+    assert not old_chapter.exists()
+    assert not manga_dir.exists()
+
+
+def test_cleanup_keeps_subdirectory_with_active_files(tmp_path: Path) -> None:
+    """Test cleanup keeps subdirectory if it contains recent files."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create manga subdirectory with old and recent files
+    manga_dir = cache_dir / "Test Manga"
+    manga_dir.mkdir()
+
+    old_chapter = manga_dir / "chapter-1.cbz"
+    old_chapter.write_bytes(b"old content")
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_chapter, (old_time, old_time))
+
+    recent_chapter = manga_dir / "chapter-2.cbz"
+    recent_chapter.write_bytes(b"recent content")
+
+    # Run cleanup
+    cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    # Old file should be removed, recent file and directory should remain
+    assert not old_chapter.exists()
+    assert recent_chapter.exists()
+    assert manga_dir.exists()

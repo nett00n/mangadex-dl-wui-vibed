@@ -36,15 +36,16 @@ def test_download_manga_success(tmp_path: Path) -> None:
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
 
-    # Create a fake CBZ file that the subprocess would create
-    fake_cbz = cache_dir / "test-manga.cbz"
-    fake_cbz.write_bytes(b"fake content")
-
     url = "https://mangadex.org/title/test-123"
 
-    with patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+    # Mock subprocess to create files in a subdirectory (mimics mangadex-dl behavior)
+    def create_files(*args, **kwargs):
+        manga_dir = cache_dir / "Test Manga"
+        manga_dir.mkdir(exist_ok=True)
+        (manga_dir / "chapter-1.cbz").write_bytes(b"fake content")
+        return MagicMock(returncode=0, stdout="", stderr="")
 
+    with patch("subprocess.run", side_effect=create_files) as mock_run:
         files = download_manga(url, str(cache_dir))
 
         assert mock_run.called
@@ -152,3 +153,59 @@ def test_scan_for_cbz_empty_dir(tmp_path: Path) -> None:
     files = scan_for_cbz(str(cache_dir))
 
     assert files == []
+
+
+def test_scan_for_cbz_with_subdirectories(tmp_path: Path) -> None:
+    """Test CBZ file scanning finds files in subdirectories."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create subdirectories with CBZ files (mimics mangadex-dl structure)
+    manga1_dir = cache_dir / "Test Manga 1"
+    manga1_dir.mkdir()
+    (manga1_dir / "chapter-1.cbz").write_bytes(b"content1")
+    (manga1_dir / "chapter-2.cbz").write_bytes(b"content2")
+
+    manga2_dir = cache_dir / "Test Manga 2"
+    manga2_dir.mkdir()
+    (manga2_dir / "chapter-1.cbz").write_bytes(b"content3")
+
+    # Also create a top-level CBZ (for backwards compatibility)
+    (cache_dir / "top-level.cbz").write_bytes(b"content4")
+
+    files = scan_for_cbz(str(cache_dir))
+
+    assert len(files) == 4
+    assert all(f.endswith(".cbz") for f in files)
+    # Should be sorted
+    assert files == sorted(files)
+
+
+def test_download_manga_returns_only_new_files(tmp_path: Path) -> None:
+    """Test download_manga returns only newly created files via snapshot diff."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create pre-existing manga directory with cached chapters
+    existing_manga_dir = cache_dir / "Existing Manga"
+    existing_manga_dir.mkdir()
+    (existing_manga_dir / "chapter-1.cbz").write_bytes(b"old content")
+
+    url = "https://mangadex.org/title/test-123"
+
+    # Mock subprocess to create NEW files in a different subdirectory
+    def create_new_files(*args, **kwargs):
+        new_manga_dir = cache_dir / "New Manga"
+        new_manga_dir.mkdir(exist_ok=True)
+        (new_manga_dir / "chapter-1.cbz").write_bytes(b"new content")
+        (new_manga_dir / "chapter-2.cbz").write_bytes(b"new content 2")
+        return MagicMock(returncode=0, stdout="", stderr="")
+
+    with patch("subprocess.run", side_effect=create_new_files) as mock_run:
+        files = download_manga(url, str(cache_dir))
+
+        assert mock_run.called
+        # Should only return the 2 new files, not the pre-existing one
+        assert len(files) == 2
+        assert all("New Manga" in f for f in files)
+        assert not any("Existing Manga" in f for f in files)

@@ -65,12 +65,15 @@ def run_mangadex_dl(
 def download_manga(url: str, cache_dir: str) -> list[str]:
     """Download manga from MangaDex using the CLI tool.
 
+    Uses before/after snapshot to isolate newly created files for this job,
+    preventing cross-contamination from concurrent downloads.
+
     Args:
         url: MangaDex URL to download
         cache_dir: Directory to cache downloaded files
 
     Returns:
-        list[str]: List of downloaded CBZ file paths
+        list[str]: List of newly created CBZ file paths for this download
 
     Raises:
         Exception: If URL is invalid or directory doesn't exist
@@ -84,13 +87,18 @@ def download_manga(url: str, cache_dir: str) -> list[str]:
     if not Path(cache_dir).exists():
         raise Exception("Directory does not exist")
 
+    # Snapshot files before download
+    existing_files = set(scan_for_cbz(cache_dir))
+
     returncode, stdout, stderr = run_mangadex_dl(url, cache_dir)
 
     if returncode != 0:
         raise RuntimeError(f"mangadex-dl failed with code {returncode}: {stderr}")
 
-    # Scan cache directory for newly downloaded CBZ files
-    return scan_for_cbz(cache_dir)
+    # Snapshot files after download and return only new files
+    all_files = set(scan_for_cbz(cache_dir))
+    new_files = all_files - existing_files
+    return sorted(new_files)
 
 
 def parse_progress(stdout: str) -> dict[str, str | int]:
@@ -146,13 +154,13 @@ def build_cli_args(url: str, cache_dir: str) -> list[str]:
 
 
 def scan_for_cbz(directory: str) -> list[str]:
-    """Scan directory for CBZ files.
+    """Scan directory recursively for CBZ files.
 
     Args:
         directory: Directory path to scan
 
     Returns:
-        list[str]: List of CBZ file paths found
+        list[str]: Sorted list of CBZ file paths found (including subdirectories)
     """
     dir_path = Path(directory)
-    return [str(f.resolve()) for f in dir_path.glob("*.cbz")]
+    return sorted(str(f.resolve()) for f in dir_path.rglob("*.cbz"))
