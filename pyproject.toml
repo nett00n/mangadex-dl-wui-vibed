@@ -15,6 +15,8 @@ dev = [
     "pytest>=8.0,<9",
     "pytest-cov>=6.0,<7",
     "pytest-timeout>=2.3,<3",
+    "playwright>=1.40,<2",
+    "pytest-playwright>=0.4,<1",
     "black>=24.0,<25",
     "isort>=5.13,<6",
     "ruff>=0.8,<1",
@@ -77,4 +79,5 @@ testpaths = ["tests"]
 addopts = "-v --tb=short --timeout=30"
 markers = [
     "integration: end-to-end integration tests (may require Redis)",
+    "ui: browser-based UI tests (requires Playwright)",
 ]

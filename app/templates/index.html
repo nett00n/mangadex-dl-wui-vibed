@@ -20,12 +20,15 @@
                     name="url"
                     placeholder="https://mangadex.org/title/..."
                     required
+                    aria-describedby="url-help"
                 >
+                <small id="url-help" class="form-text">Enter a MangaDex manga or chapter URL</small>
             </div>
-            <button type="submit">Download</button>
+            <button type="submit" id="submit-button">Download</button>
         </form>
 
-        <div id="status" class="status-container"></div>
+        <div id="error-container" role="alert" aria-live="polite" class="error-container hidden"></div>
+        <div id="tasks-container" aria-live="polite" class="tasks-container"></div>
     </div>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>

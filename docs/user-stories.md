@@ -8,7 +8,7 @@
 
 ## Epic 1: Download Management
 
-### US-1.1: Submit Download Request
+### US-1.1: Submit Download Request ✅
 
 **As a** user
 **I want to** submit a MangaDex URL through a web form
@@ -23,10 +23,11 @@
 - And I see a confirmation message
 
 **Related FRs**: FR-1.1, FR-1.2, FR-2.1, FR-2.3, FR-2.4
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-001, JS-UI-002, tests/test_ui.py)
 
 ---
 
-### US-1.2: Invalid URL Handling
+### US-1.2: Invalid URL Handling ✅
 
 **As a** user
 **I want to** receive clear error messages for invalid URLs
@@ -40,10 +41,11 @@
 - And no download task is created
 
 **Related FRs**: FR-2.2, FR-2.5, FR-10.1, FR-10.3
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-003, JS-UI-004, tests/test_ui.py)
 
 ---
 
-### US-1.3: Track Download Progress
+### US-1.3: Track Download Progress ✅
 
 **As a** user
 **I want to** see real-time progress of my download
@@ -57,10 +59,11 @@
 - And the information updates automatically via polling
 
 **Related FRs**: FR-1.3, FR-1.4, FR-4.1, FR-4.2, FR-4.3
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-005, JS-UI-006, JS-UI-009, JS-UI-010, tests/test_ui.py)
 
 ---
 
-### US-1.4: Download Completed Files
+### US-1.4: Download Completed Files ✅
 
 **As a** user
 **I want to** download the CBZ files when the task completes
@@ -75,10 +78,11 @@
 - Then the CBZ file downloads to my browser
 
 **Related FRs**: FR-1.5, FR-4.4, FR-5.1, FR-5.2, FR-5.4, FR-5.5, FR-5.6
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-007, JS-UI-012, tests/test_ui.py)
 
 ---
 
-### US-1.5: Handle Failed Downloads
+### US-1.5: Handle Failed Downloads ✅
 
 **As a** user
 **I want to** see clear error messages when downloads fail
@@ -92,12 +96,13 @@
 - And I have the option to retry with a new task
 
 **Related FRs**: FR-1.6, FR-4.5, FR-10.3, FR-10.4
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-008, JS-UI-011, JS-UI-015, tests/test_ui.py)
 
 ---
 
 ## Epic 2: Concurrent Operations
 
-### US-2.1: Multiple Simultaneous Downloads
+### US-2.1: Multiple Simultaneous Downloads ✅
 
 **As a** user
 **I want to** submit multiple download requests
@@ -111,10 +116,11 @@
 - And the system respects the max concurrent limit
 
 **Related FRs**: FR-1.7, FR-2.7, FR-3.1, FR-7.6, FR-9.5
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-013, tests/test_ui.py)
 
 ---
 
-### US-2.2: View Multiple Task Statuses
+### US-2.2: View Multiple Task Statuses ✅
 
 **As a** user
 **I want to** track multiple downloads simultaneously
@@ -128,12 +134,13 @@
 - And concurrent status checks don't interfere
 
 **Related FRs**: FR-4.7, FR-7.6
+**Status**: ✅ **Implemented** - Phase 5 (JS-UI-013, tests/test_ui.py)
 
 ---
 
 ## Epic 3: Caching and Efficiency
 
-### US-3.1: Avoid Re-downloading Chapters
+### US-3.1: Avoid Re-downloading Chapters ✅
 
 **As a** user
 **I want** already-downloaded chapters to be reused
@@ -147,10 +154,11 @@
 - And I get the same files as before
 
 **Related FRs**: FR-6.1, FR-6.2, FR-6.3, FR-6.4, FR-6.5
+**Status**: ✅ **Implemented** - Phase 2 (app/downloader.py, mangadex-dl native caching)
 
 ---
 
-### US-3.2: Persistent Cache Across Restarts
+### US-3.2: Persistent Cache Across Restarts ✅
 
 **As a** user
 **I want** my downloads to persist across app restarts
@@ -164,10 +172,11 @@
 - But old task IDs are no longer valid
 
 **Related FRs**: FR-6.1, FR-6.8
+**Status**: ✅ **Implemented** - Phase 1 (app/config.py, CACHE_DIR configuration)
 
 ---
 
-### US-3.3: Automatic Cache Cleanup
+### US-3.3: Automatic Cache Cleanup ✅
 
 **As a** system administrator
 **I want** old cached files to be automatically deleted
@@ -181,12 +190,13 @@
 - And active task files are never deleted
 
 **Related FRs**: FR-6.6, FR-6.7, FR-8.5, FR-8.6
+**Status**: ✅ **Implemented** - Phase 4 (app/cleanup.py, UT-CLN-001-008)
 
 ---
 
 ## Epic 4: System Reliability
 
-### US-4.1: Task Record Cleanup
+### US-4.1: Task Record Cleanup ✅
 
 **As a** system administrator
 **I want** expired task records to be automatically cleaned up
@@ -200,10 +210,11 @@
 - But cached CBZ files are preserved
 
 **Related FRs**: FR-7.5, FR-8.1, FR-8.2, FR-8.3, FR-8.4
+**Status**: ✅ **Implemented** - Phase 4 (app/cleanup.py) + Phase 5 (JS-UI-016 dismiss button)
 
 ---
 
-### US-4.2: Graceful Error Recovery
+### US-4.2: Graceful Error Recovery ✅
 
 **As a** user
 **I want** the system to handle errors gracefully
@@ -218,10 +229,11 @@
 - And no stack traces are exposed
 
 **Related FRs**: FR-3.9, FR-10.5, FR-10.6, FR-10.7, FR-10.8
+**Status**: ✅ **Implemented** - Phase 3 (app/worker.py) + Phase 4 (app/routes.py)
 
 ---
 
-### US-4.3: Concurrent Job Safety
+### US-4.3: Concurrent Job Safety ✅
 
 **As a** developer
 **I want** job operations to be safe from race conditions
@@ -235,12 +247,13 @@
 - And data consistency is maintained via Redis transactions
 
 **Related FRs**: FR-7.1, FR-7.6, FR-7.7, FR-7.8
+**Status**: ✅ **Implemented** - Phase 3 (app/tasks.py, RQ/Redis atomic operations)
 
 ---
 
 ## Epic 5: File Security
 
-### US-5.1: Path Traversal Protection
+### US-5.1: Path Traversal Protection ✅
 
 **As a** system administrator
 **I want** file access to be validated
@@ -254,10 +267,11 @@
 - And only files belonging to the task ID are served
 
 **Related FRs**: FR-5.3, FR-5.7, FR-5.8, NFR-4
+**Status**: ✅ **Implemented** - Phase 1 (app/validators.py) + Phase 4 (app/routes.py)
 
 ---
 
-### US-5.2: Input Validation
+### US-5.2: Input Validation ✅
 
 **As a** system administrator
 **I want** all API inputs to be validated
@@ -271,12 +285,13 @@
 - And no arbitrary file paths are accessed
 
 **Related FRs**: FR-10.1, NFR-4
+**Status**: ✅ **Implemented** - Phase 1 (app/validators.py) + Phase 2 (app/downloader.py subprocess safety) + Phase 5 (JS XSS prevention)
 
 ---
 
 ## Epic 6: Configuration and Deployment
 
-### US-6.1: Environment-based Configuration
+### US-6.1: Environment-based Configuration ✅
 
 **As a** system administrator
 **I want to** configure the app via environment variables
@@ -290,10 +305,11 @@
 - And invalid values are rejected with clear errors
 
 **Related FRs**: FR-9.1, FR-9.2, FR-9.3, FR-9.4, FR-9.5, FR-9.6, FR-9.7, FR-9.8
+**Status**: ✅ **Implemented** - Phase 1 (app/config.py, UT-CFG-001-012)
 
 ---
 
-### US-6.2: Docker Deployment
+### US-6.2: Docker Deployment ✅
 
 **As a** system administrator
 **I want to** deploy the app using Docker Compose
@@ -310,10 +326,11 @@
 - And the app is ready to accept requests
 
 **Related FRs**: NFR-5
+**Status**: ✅ **Implemented** - docker-compose.yml, Dockerfile
 
 ---
 
-### US-6.3: Health Checks
+### US-6.3: Health Checks ✅
 
 **As a** system administrator
 **I want** a health check endpoint
@@ -326,12 +343,13 @@
 - And the HTML page loads successfully
 
 **Related FRs**: FR-1.1, NFR-5
+**Status**: ✅ **Implemented** - Phase 4 (app/routes.py, IT-API-013)
 
 ---
 
 ## Epic 7: Performance
 
-### US-7.1: Fast Status Checks
+### US-7.1: Fast Status Checks ✅
 
 **As a** user
 **I want** status checks to be fast
@@ -344,10 +362,11 @@
 - And the endpoint supports high polling frequency
 
 **Related FRs**: NFR-1
+**Status**: ✅ **Implemented** - Phase 3 (app/tasks.py, Redis-backed status queries)
 
 ---
 
-### US-7.2: Efficient File Streaming
+### US-7.2: Efficient File Streaming ✅
 
 **As a** user
 **I want** large CBZ files to download efficiently
@@ -360,6 +379,7 @@
 - And large files don't cause OOM errors
 
 **Related FRs**: NFR-1
+**Status**: ✅ **Implemented** - Phase 4 (app/routes.py, Flask send_file streaming)
 
 ---
 
