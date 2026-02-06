@@ -1,6 +1,6 @@
 # Test Cases
 
-**Project:** mangadex-dl-wui
+**Project:** mangadex-dl-wui-vibed
 **Version:** 1.0
 **Date:** 2026-02-04
 
@@ -228,7 +228,7 @@
 
 ### Pre-commit Checks
 
-```bash
+```shell
 # Run before every commit
 pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80
 black --check app/ tests/
@@ -340,7 +340,7 @@ HTTPError: 404 Not Found
 - **Production-ready**
 
 ### Test Execution
-```bash
+```shell
 # Run all tests
 pytest -v  # 103 passed, 1 skipped
 

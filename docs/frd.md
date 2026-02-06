@@ -1,6 +1,6 @@
 # Functional Requirements Document (FRD)
 
-**Project:** mangadex-dl-wui
+**Project:** mangadex-dl-wui-vibed
 **Version:** 1.0
 **Date:** 2026-02-04
 
@@ -8,7 +8,7 @@
 
 ### 1.1 Purpose
 
-This document defines the functional requirements for **mangadex-dl-wui**, a web-based user interface for the `mangadex-dl` command-line tool. The application enables users to download manga from MangaDex through a simple browser interface and retrieve the results as CBZ files.
+This document defines the functional requirements for **mangadex-dl-wui-vibed**, a web-based user interface for the `mangadex-dl` command-line tool. The application enables users to download manga from MangaDex through a simple browser interface and retrieve the results as CBZ files.
 
 ### 1.2 Scope
 

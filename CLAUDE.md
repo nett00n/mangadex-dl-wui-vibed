@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Mandatory rules for all code generation and modification in mangadex-dl-wui.
+Mandatory rules for all code generation and modification in mangadex-dl-wui-vibed.
 
 **IMPORTANT:** Always read and reference [CONTRIBUTING.md](CONTRIBUTING.md) for complete project architecture, development workflows, API specifications, and implementation details.
 
@@ -41,7 +41,7 @@ Mandatory rules for all code generation and modification in mangadex-dl-wui.
 
 ## Project Context
 
-**mangadex-dl-wui** is a Flask-based web UI wrapper for the `mangadex-dl` CLI tool. It uses Redis + RQ for job queuing and subprocess execution for downloading manga from MangaDex.
+**mangadex-dl-wui-vibed** is a Flask-based web UI wrapper for the `mangadex-dl` CLI tool. It uses Redis + RQ for job queuing and subprocess execution for downloading manga from MangaDex.
 
 ### Architecture Quick Reference
 
@@ -105,7 +105,7 @@ All configuration via environment variables (see `.env.example`):
 |----------|---------|---------|
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection (auth: `redis://:password@host:port/db`) |
 | `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
-| `TEMP_DIR` | `/tmp/mangadex-wui` | Temporary task directories |
+| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task directories |
 | `TASK_TTL_SECONDS` | `3600` | Task record expiration (1 hour) |
 | `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (7 days) |
 | `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
@@ -114,7 +114,7 @@ All configuration via environment variables (see `.env.example`):
 
 ### Before Making Changes
 
-```bash
+```shell
 source .venv/bin/activate
 pre-commit run --all-files
 pytest --cov=app
@@ -122,7 +122,7 @@ pytest --cov=app
 
 ### After Making Changes
 
-```bash
+```shell
 black app/ tests/
 isort app/ tests/
 pytest --cov=app --cov-report=term-missing

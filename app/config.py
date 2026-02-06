@@ -36,7 +36,7 @@ class Config:
 
     REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
     CACHE_DIR = os.environ.get("CACHE_DIR", "/downloads/cache")
-    TEMP_DIR = os.environ.get("TEMP_DIR", "/tmp/mangadex-wui")
+    TEMP_DIR = os.environ.get("TEMP_DIR", "/tmp/mangadex-wui-vibed")
     TASK_TTL_SECONDS = _get_positive_int_from_env("TASK_TTL_SECONDS", 3600)
     CACHE_TTL_SECONDS = _get_positive_int_from_env("CACHE_TTL_SECONDS", 604800)
     RQ_WORKER_COUNT = _get_positive_int_from_env("RQ_WORKER_COUNT", 3)

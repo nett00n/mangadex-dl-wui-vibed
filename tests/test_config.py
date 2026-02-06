@@ -118,7 +118,7 @@ def test_config_temp_dir_default(monkeypatch: pytest.MonkeyPatch) -> None:
     importlib.reload(app.config)
 
     # Check the default temp dir
-    assert app.config.Config.TEMP_DIR == "/tmp/mangadex-wui"
+    assert app.config.Config.TEMP_DIR == "/tmp/mangadex-wui-vibed"
 
 
 def test_config_invalid_ttl(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -31,6 +31,34 @@ p {
     margin-bottom: 30px;
 }
 
+.subtitle {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+}
+
+.description {
+    background-color: #ecf0f1;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    border-left: 4px solid #3498db;
+}
+
+.description p {
+    margin-bottom: 0;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.description a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.description a:hover {
+    text-decoration: underline;
+}
+
 .form-group {
     margin-bottom: 20px;
 }
@@ -288,6 +316,57 @@ button:disabled {
 .file-list a::before {
     content: "📦 ";
     margin-right: 8px;
+}
+
+/* Disclaimer footer */
+.disclaimer {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.disclaimer h3 {
+    color: #e74c3c;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.disclaimer p {
+    color: #555;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.disclaimer strong {
+    color: #2c3e50;
+}
+
+.disclaimer ul {
+    margin: 10px 0 15px 20px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.disclaimer li {
+    margin-bottom: 5px;
+}
+
+.disclaimer a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.disclaimer a:hover {
+    text-decoration: underline;
+}
+
+.license-note {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ecf0f1;
+    font-size: 0.85em;
+    color: #95a5a6;
 }
 
 /* Responsive design */

@@ -1,6 +1,6 @@
 # User Stories
 
-**Project:** mangadex-dl-wui
+**Project:** mangadex-dl-wui-vibed
 **Version:** 1.0
 **Date:** 2026-02-04
 

@@ -5,4 +5,4 @@
 # See the LICENSE file for more information.
 #
 
-"""Test suite for mangadex-dl-wui."""
+"""Test suite for mangadex-dl-wui-vibed."""

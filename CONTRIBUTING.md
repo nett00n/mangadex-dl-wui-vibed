@@ -1,4 +1,4 @@
-# Contributing to mangadex-dl-wui
+# Contributing to mangadex-dl-wui-vibed
 
 This guide covers setup, development workflows, architecture, and testing for contributors.
 
@@ -28,7 +28,7 @@ This guide covers setup, development workflows, architecture, and testing for co
 
 ## Development Setup
 
-```bash
+```shell
 # Create virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
@@ -52,7 +52,7 @@ cp .env.example .env
 
 Requires 3 terminal sessions:
 
-```bash
+```shell
 # Terminal 1: Start Redis
 redis-server
 
@@ -70,7 +70,7 @@ Visit http://localhost:5000 in your browser.
 
 ### Production Mode (Docker)
 
-```bash
+```shell
 # Build and start all services
 docker compose up --build
 
@@ -127,7 +127,7 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
 ### Project Structure
 
 ```
-mangadex-dl-wui/
+mangadex-dl-wui-vibed/
 ├── CLAUDE.md                     # AI assistant instructions
 ├── CONTRIBUTING.md               # This file - developer guide
 ├── docs/
@@ -194,7 +194,7 @@ def run_mangadex_dl(url: str, cache_dir: str, timeout: int = 3600) -> tuple[int,
 
 ## Testing
 
-```bash
+```shell
 # Activate virtual environment
 source .venv/bin/activate
 
@@ -226,7 +226,7 @@ pytest -k "test_download"
 
 All quality checks run automatically on commit:
 
-```bash
+```shell
 # Manually run all hooks
 pre-commit run --all-files
 
@@ -236,7 +236,7 @@ pre-commit run black
 
 ### Manual Quality Checks
 
-```bash
+```shell
 # Code formatting
 black app/ tests/
 isort app/ tests/
@@ -431,7 +431,7 @@ All configuration is via environment variables. See `.env.example` for a complet
 |----------|---------|-------------|
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. For auth: `redis://:password@host:port/db` |
 | `CACHE_DIR` | `/downloads/cache` | Persistent cache directory for downloaded manga |
-| `TEMP_DIR` | `/tmp/mangadex-wui` | Temporary task working directories |
+| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task working directories |
 | `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration time |
 | `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration time |
 | `RQ_WORKER_COUNT` | `3` | Number of concurrent download workers |
@@ -440,10 +440,10 @@ All configuration is via environment variables. See `.env.example` for a complet
 ### Development vs Production
 
 **Development** (.env):
-```bash
+```shell
 REDIS_URL=redis://localhost:6379/0
 CACHE_DIR=./downloads/cache
-TEMP_DIR=/tmp/mangadex-wui
+TEMP_DIR=/tmp/mangadex-wui-vibed
 ```
 
 **Production** (docker-compose.yml environment):
@@ -463,7 +463,7 @@ CACHE_DIR=/downloads/cache
 
 The application invokes `mangadex-dl` with these flags:
 
-```bash
+```shell
 mangadex-dl \
   --save-as cbz \                # Output format
   --path <CACHE_DIR> \           # Cache directory for persistence

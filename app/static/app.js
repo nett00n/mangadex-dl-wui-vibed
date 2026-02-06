@@ -5,7 +5,7 @@
  * See the LICENSE file for more information.
  */
 
-// mangadex-dl-wui frontend JavaScript
+// mangadex-dl-wui-vibed frontend JavaScript
 
 // API Client for backend communication
 const ApiClient = {

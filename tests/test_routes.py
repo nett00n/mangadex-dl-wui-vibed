@@ -21,7 +21,7 @@ def test_index_route(client: FlaskClient) -> None:
     """
     response = client.get("/")
     assert response.status_code == 200
-    assert b"mangadex-dl-wui" in response.data
+    assert b"mangadex-dl-wui-vibed" in response.data
 
 
 def test_download_valid_url(client: FlaskClient) -> None:

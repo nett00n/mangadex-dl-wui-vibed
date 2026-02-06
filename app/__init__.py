@@ -5,7 +5,7 @@
 # See the LICENSE file for more information.
 #
 
-"""Flask application factory for mangadex-dl-wui."""
+"""Flask application factory for mangadex-dl-wui-vibed."""
 
 from flask import Flask
 
