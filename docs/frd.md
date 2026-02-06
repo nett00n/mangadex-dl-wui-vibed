@@ -139,7 +139,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-6.3: Use `mangadex-dl`'s native skip-downloaded logic
 - FR-6.4: Reuse existing CBZ files for repeated URLs
 - FR-6.5: Track cache file association with tasks
-- FR-6.6: Implement cache TTL (default: 7 days)
+- FR-6.6: Implement cache TTL (default: 7 days; 0 = never expire)
 - FR-6.7: Clean up expired cache files automatically
 - FR-6.8: Keep cache separate from task temp directories
 
@@ -165,7 +165,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-8.1: Configure RQ job result TTL for automatic job cleanup
 - FR-8.2: Run background cleanup process for cache files
 - FR-8.3: Check for expired cache files periodically (every 5 minutes)
-- FR-8.4: Remove cached files after cache TTL expires
+- FR-8.4: Remove cached files after cache TTL expires (skipped when TTL is 0)
 - FR-8.5: Preserve cache files for active/recent jobs
 - FR-8.6: Remove temp directories for completed jobs
 - FR-8.7: Log cleanup actions
@@ -180,7 +180,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-9.2: Configure cache directory path
 - FR-9.3: Configure temp directory path
 - FR-9.4: Configure job result TTL in seconds
-- FR-9.5: Configure cache TTL in seconds
+- FR-9.5: Configure cache TTL in seconds (0 = disable expiration)
 - FR-9.6: Configure RQ worker count (concurrent downloads)
 - FR-9.7: Provide sensible defaults for all settings
 - FR-9.8: Validate configuration values at startup

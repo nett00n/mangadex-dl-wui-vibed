@@ -167,10 +167,28 @@ const TaskManager = {
                 // Resume polling for non-terminal tasks
                 if (task.status !== 'finished' && task.status !== 'failed') {
                     this.startPolling(id);
+                } else if (task.status === 'finished' && (!task.files || task.files.length === 0)) {
+                    // One-time refresh to get file list from API
+                    this.refreshFinishedTask(id);
                 }
             }
         } catch {
             // Corrupt data, ignore
+        }
+    },
+
+    /**
+     * Refresh a finished task to get file list from API
+     * @param {string} taskId - Task ID
+     */
+    async refreshFinishedTask(taskId) {
+        try {
+            const status = await ApiClient.getStatus(taskId);
+            if (status.status === 'finished' && status.files) {
+                this.updateTask(taskId, status);
+            }
+        } catch {
+            // API unavailable or job expired — keep sessionStorage data as-is
         }
     },
 };

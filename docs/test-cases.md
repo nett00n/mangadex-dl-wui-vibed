@@ -84,6 +84,7 @@
 | UT-CLN-006 | Empty cache directory | No files | `cleanup_cache(cache_dir, ttl)` | No errors, no changes | US-4.1 |
 | UT-CLN-007 | Scan for job references | Files in cache | Check Redis for active jobs | Only unreferenced files cleaned | US-3.3 |
 | UT-CLN-008 | Remove temp directories | Completed jobs | `cleanup_temp_dirs()` | Temp dirs for done jobs removed | US-4.1 |
+| UT-CLN-009 | TTL zero skips cleanup | TTL=0, expired files | `cleanup_cache(cache_dir, ttl=0)` | No files deleted | US-3.3 |
 
 ---
 
@@ -103,6 +104,7 @@
 | UT-CFG-010 | Custom worker count | `RQ_WORKER_COUNT=5` | `5` | US-6.1 |
 | UT-CFG-011 | Invalid TTL value | `TASK_TTL_SECONDS=abc` | Validation error or default | US-6.1 |
 | UT-CFG-012 | Negative TTL value | `TASK_TTL_SECONDS=-100` | Validation error or default | US-6.1 |
+| UT-CFG-013 | Zero cache TTL | `CACHE_TTL_SECONDS=0` | `0` (never expire) | US-3.3 |
 
 ---
 
@@ -177,6 +179,7 @@
 | IT-E2E-008 | Restart persistence | Download → Restart app → Re-download | Cache reused after restart | US-3.2 |
 | IT-E2E-009 | Multiple clients | 2 clients poll same task | Both get consistent status | US-2.2 |
 | IT-E2E-010 | Large file download | Download multi-chapter manga | No memory issues, streaming works | US-7.2 |
+| IT-E2E-011 | Cache no expiration | TTL=0, old files | Cache files preserved | US-3.3 |
 
 ---
 

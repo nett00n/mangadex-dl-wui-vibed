@@ -189,6 +189,9 @@
 - Then expired cache files are deleted
 - And recent cache files are preserved
 - And active task files are never deleted
+- Given CACHE_TTL_SECONDS is set to 0
+- When the cleanup job runs
+- Then no cache files are deleted regardless of age
 
 **Related FRs**: FR-6.6, FR-6.7, FR-8.5, FR-8.6
 **Status**: ✅ **Implemented** - Phase 4 (app/cleanup.py, UT-CLN-001-008)

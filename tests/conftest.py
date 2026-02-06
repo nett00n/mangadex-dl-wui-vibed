@@ -241,7 +241,7 @@ def live_server_with_mocks(
             task_url_map[task_id] = "default"
         return task_id
 
-    def mock_get_status(task_id: str):
+    def mock_get_status(task_id: str) -> dict[str, str | dict[str, int] | list[str]]:
         # Get status based on task ID mapping
         pattern = task_url_map.get(task_id, "default")
         if pattern in mock_task_status:

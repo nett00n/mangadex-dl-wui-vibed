@@ -283,3 +283,24 @@ def test_multi_chapter_download(client_with_dirs: FlaskClient, cache_dir: Path) 
 
                 response = client_with_dirs.get(f"/api/file/{task_id}/manga-ch020.cbz")
                 assert response.status_code == 200
+
+
+@pytest.mark.integration
+def test_cache_no_expiration_when_ttl_zero(cache_dir: Path) -> None:
+    """Test cache files are preserved when TTL is 0 (IT-E2E-011)."""
+    from app.cleanup import cleanup_cache
+
+    # Create an old file
+    old_file = cache_dir / "old-manga.cbz"
+    old_file.write_bytes(b"old content")
+
+    # Set file modification time to 30 days ago
+    old_time = time.time() - (30 * 24 * 60 * 60)
+    os.utime(old_file, (old_time, old_time))
+
+    # Run cleanup with ttl=0 (never expire)
+    removed_count = cleanup_cache(str(cache_dir), ttl=0)
+
+    # File should still exist and no files should be removed
+    assert old_file.exists()
+    assert removed_count == 0

@@ -139,3 +139,14 @@ def test_config_negative_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with pytest.raises(ValueError, match="TASK_TTL_SECONDS must be >= 1"):
         importlib.reload(app.config)
+
+
+def test_config_zero_cache_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that CACHE_TTL_SECONDS=0 is accepted (UT-CFG-013)."""
+    monkeypatch.setenv("CACHE_TTL_SECONDS", "0")
+
+    import app.config
+
+    importlib.reload(app.config)
+
+    assert app.config.Config.CACHE_TTL_SECONDS == 0

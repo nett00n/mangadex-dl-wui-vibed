@@ -38,5 +38,9 @@ class Config:
     CACHE_DIR = os.environ.get("CACHE_DIR", "/downloads/cache")
     TEMP_DIR = os.environ.get("TEMP_DIR", "/tmp/mangadex-wui-vibed")
     TASK_TTL_SECONDS = _get_positive_int_from_env("TASK_TTL_SECONDS", 3600)
-    CACHE_TTL_SECONDS = _get_positive_int_from_env("CACHE_TTL_SECONDS", 604800)
+    CACHE_TTL_SECONDS = _get_positive_int_from_env(
+        "CACHE_TTL_SECONDS",
+        604800,
+        min_value=0,
+    )
     RQ_WORKER_COUNT = _get_positive_int_from_env("RQ_WORKER_COUNT", 3)

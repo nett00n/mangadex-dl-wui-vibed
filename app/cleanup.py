@@ -77,7 +77,7 @@ def cleanup_cache(cache_dir: str, ttl: int) -> int:
 
     Args:
         cache_dir: Directory containing cached files
-        ttl: Time-to-live in seconds
+        ttl: Time-to-live in seconds (0 = never expire)
 
     Returns:
         int: Number of files removed
@@ -85,6 +85,9 @@ def cleanup_cache(cache_dir: str, ttl: int) -> int:
     cache_path = Path(cache_dir)
     if not cache_path.exists():
         return 0
+
+    if ttl == 0:
+        return 0  # TTL=0 means no expiration
 
     # Get files referenced by active jobs (convert to set for O(1) lookup)
     active_files = set(get_active_job_files())

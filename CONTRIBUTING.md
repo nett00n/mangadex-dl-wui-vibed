@@ -121,7 +121,7 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
 - `download_manga` snapshots files before/after download to return only newly created files per job
 - Re-downloading the same manga reuses existing CBZ files (near-instant)
 - Task records expire after `TASK_TTL_SECONDS` (default: 1 hour)
-- Cached files expire after `CACHE_TTL_SECONDS` (default: 7 days)
+- Cached files expire after `CACHE_TTL_SECONDS` (default: 7 days; 0 = never expire)
 - Cleanup handles files in subdirectories and removes empty directories
 
 ### Project Structure
@@ -377,7 +377,7 @@ Tasks are automatically saved on:
 - Status updates (`updateTask`)
 - Task removal (`removeTask`)
 
-Tasks are loaded on page load (`DOMContentLoaded`). Non-terminal tasks (not finished/failed) automatically resume polling.
+Tasks are loaded on page load (`DOMContentLoaded`). Non-terminal tasks (not finished/failed) automatically resume polling. Finished tasks missing file data are automatically refreshed via a one-time API call on page load.
 
 ### Manga Name Display
 
@@ -433,7 +433,7 @@ All configuration is via environment variables. See `.env.example` for a complet
 | `CACHE_DIR` | `/downloads/cache` | Persistent cache directory for downloaded manga |
 | `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task working directories |
 | `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration time |
-| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration time |
+| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration time (0 = never expire) |
 | `RQ_WORKER_COUNT` | `3` | Number of concurrent download workers |
 | `PYTHON_VERSION` | `3.12` | Python version (Docker build only) |
 

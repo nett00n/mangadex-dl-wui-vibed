@@ -157,7 +157,7 @@ All configuration via environment variables (see `.env.example`):
 | `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
 | `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task directories |
 | `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration |
-| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration |
+| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration (0 = never expire) |
 | `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
 
 ## 🧪 Testing

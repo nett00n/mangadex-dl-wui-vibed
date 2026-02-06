@@ -254,3 +254,24 @@ def test_cleanup_keeps_subdirectory_with_active_files(tmp_path: Path) -> None:
     assert not old_chapter.exists()
     assert recent_chapter.exists()
     assert manga_dir.exists()
+
+
+def test_cleanup_ttl_zero_skips_all_files(tmp_path: Path) -> None:
+    """Test cleanup with ttl=0 skips all files (UT-CLN-009)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    # Create an expired file
+    expired_file = cache_dir / "expired.cbz"
+    expired_file.write_bytes(b"expired content")
+
+    # Set file modification time to 8 days ago
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(expired_file, (old_time, old_time))
+
+    # Run cleanup with ttl=0 (never expire)
+    result = cleanup_cache(str(cache_dir), ttl=0)
+
+    # File should still exist and no files should be removed
+    assert expired_file.exists()
+    assert result == 0
