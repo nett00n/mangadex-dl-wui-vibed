@@ -137,6 +137,17 @@ button:disabled {
     font-family: monospace;
 }
 
+.task-url {
+    display: block;
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.task-url a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 .task-actions {
     display: flex;
     gap: 8px;

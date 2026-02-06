@@ -528,3 +528,125 @@ def test_loading_state_announced(page: Page, live_server: "LiveServer") -> None:
     # Check tasks container has aria-live
     tasks_container = page.locator("#tasks-container")
     expect(tasks_container).to_have_attribute("aria-live", "polite")
+
+
+# Session Storage and Manga Name Tests
+
+
+def test_task_card_shows_manga_name(page: Page, live_server: "LiveServer") -> None:
+    """JS-UI-017: Task card shows manga name extracted from URL."""
+    page.goto(live_server.url)
+
+    # Submit URL with slug
+    url_input = page.locator("#manga-url")
+    url_input.fill("https://mangadex.org/title/12345/one-piece-digital-colored")
+    page.locator('button[type="submit"]').click()
+
+    # Wait for task card
+    task_card = page.locator(".task-card")
+    expect(task_card).to_be_visible(timeout=5000)
+
+    # Check manga name is displayed (slugs have dashes replaced with spaces)
+    task_url = task_card.locator(".task-url")
+    expect(task_url).to_be_visible()
+    expect(task_url).to_contain_text("one piece digital colored")
+
+
+def test_tasks_persist_after_refresh(page: Page, live_server: "LiveServer") -> None:
+    """JS-UI-018: Tasks persist in sessionStorage after page refresh."""
+    page.goto(live_server.url)
+
+    # Submit URL
+    url_input = page.locator("#manga-url")
+    url_input.fill("https://mangadex.org/title/67890/attack-on-titan")
+    page.locator('button[type="submit"]').click()
+
+    # Wait for task card
+    task_card = page.locator(".task-card")
+    expect(task_card).to_be_visible(timeout=5000)
+
+    # Get task ID for verification
+    task_id_element = task_card.locator(".task-id")
+    original_task_id = task_id_element.text_content()
+
+    # Reload page
+    page.reload()
+
+    # Task card should still be visible with same task ID
+    task_card = page.locator(".task-card")
+    expect(task_card).to_be_visible(timeout=5000)
+
+    task_id_element = task_card.locator(".task-id")
+    reloaded_task_id = task_id_element.text_content()
+
+    assert original_task_id == reloaded_task_id
+
+    # Manga name should also persist
+    task_url = task_card.locator(".task-url")
+    expect(task_url).to_contain_text("attack on titan")
+
+
+def test_dismiss_clears_from_session_storage(
+    page: Page,
+    live_server: "LiveServer",
+) -> None:
+    """JS-UI-019: Dismissing task clears it from sessionStorage."""
+    page.goto(live_server.url)
+
+    # Submit URL
+    url_input = page.locator("#manga-url")
+    url_input.fill("https://mangadex.org/title/11111/naruto")
+    page.locator('button[type="submit"]').click()
+
+    # Wait for task card
+    task_card = page.locator(".task-card")
+    expect(task_card).to_be_visible(timeout=5000)
+
+    # Dismiss the task
+    dismiss_button = task_card.locator(".btn-dismiss")
+    dismiss_button.click()
+    expect(task_card).not_to_be_visible(timeout=2000)
+
+    # Reload page
+    page.reload()
+
+    # Task card should NOT reappear
+    import time
+
+    time.sleep(0.5)  # Give time for potential load
+    task_cards = page.locator(".task-card")
+    expect(task_cards).to_have_count(0)
+
+
+def test_retry_prefills_url(
+    page: Page,
+    live_server_with_mocks: "LiveServer",
+) -> None:
+    """JS-UI-020: Retry button pre-fills URL from stored task data."""
+    page.goto(live_server_with_mocks.url)
+
+    # Submit URL that will fail
+    original_url = "https://mangadex.org/title/test-failed"
+    url_input = page.locator("#manga-url")
+    url_input.fill(original_url)
+    page.locator('button[type="submit"]').click()
+
+    # Wait for failure
+    task_card = page.locator(".task-card")
+    expect(task_card).to_be_visible(timeout=5000)
+
+    status_badge = task_card.locator(".status-badge")
+    expect(status_badge).to_contain_text("failed", timeout=10000)
+
+    # Clear the input field to verify retry fills it
+    url_input.fill("")
+
+    # Click retry button
+    retry_button = task_card.locator(".btn-retry")
+    retry_button.click()
+
+    # Task card should be dismissed
+    expect(task_card).not_to_be_visible(timeout=2000)
+
+    # URL input should be pre-filled with original URL
+    expect(url_input).to_have_value(original_url)

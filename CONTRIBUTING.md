@@ -11,6 +11,7 @@ This guide covers setup, development workflows, architecture, and testing for co
 - [Testing](#testing)
 - [Code Quality](#code-quality)
 - [API Reference](#api-reference)
+- [Frontend Architecture](#frontend-architecture)
 - [Configuration](#configuration)
 
 ## Prerequisites
@@ -320,6 +321,105 @@ Serve the web UI.
 **Response (200 OK):**
 - Content-Type: `text/html`
 - Body: HTML page
+
+## Frontend Architecture
+
+The web UI is implemented using vanilla JavaScript with no framework dependencies. It provides a reactive task management interface with automatic status polling and persistent state.
+
+### Key Components
+
+**`app/static/app.js`** - JavaScript modules:
+
+1. **`ApiClient`** - HTTP client for backend communication
+   - `postDownload(url)` - Submit download request
+   - `getStatus(taskId)` - Poll task status
+   - `getFileUrl(taskId, filename)` - Build download URL
+
+2. **`TaskManager`** - Task state management and polling
+   - `tasks` - Map of task IDs to task objects
+   - `addTask(taskId, url)` - Register new task
+   - `updateTask(taskId, status)` - Update task state
+   - `removeTask(taskId)` - Remove task
+   - `startPolling(taskId)` - Begin status polling (2s interval)
+   - `stopPolling(taskId)` - Stop polling
+   - `saveTasks()` - Persist tasks to sessionStorage
+   - `loadTasks()` - Restore tasks from sessionStorage
+
+3. **`UI`** - DOM rendering and user interaction
+   - `renderTask(taskId, status)` - Render/update task card
+   - `renderError(message)` - Display error message
+   - `extractMangaName(url)` - Extract manga name from URL slug
+   - `retryTask(taskId)` - Retry failed download
+   - `escapeHtml(text)` - XSS prevention
+
+**`app/static/style.css`** - Responsive CSS with mobile support
+
+**`app/templates/index.html`** - HTML structure with accessibility features
+
+### SessionStorage Persistence
+
+Tasks persist across page refreshes within the same browser tab/session using `sessionStorage`:
+
+- **Key**: `mangadex-tasks`
+- **Value**: JSON object mapping task IDs to task objects
+- **Task object structure**:
+  ```json
+  {
+    "status": "queued|started|finished|failed",
+    "url": "https://mangadex.org/title/...",
+    "error": "error message (if failed)",
+    "files": ["file1.cbz", "file2.cbz"] // (if finished)
+  }
+  ```
+
+Tasks are automatically saved on:
+- Task creation (`addTask`)
+- Status updates (`updateTask`)
+- Task removal (`removeTask`)
+
+Tasks are loaded on page load (`DOMContentLoaded`). Non-terminal tasks (not finished/failed) automatically resume polling.
+
+### Manga Name Display
+
+The UI extracts manga names from MangaDex URL slugs:
+
+- URL: `https://mangadex.org/title/{uuid}/{slug}` → Manga name: `{slug with dashes replaced by spaces}`
+- URL: `https://mangadex.org/title/{uuid}` → Manga name: `{uuid}`
+
+Examples:
+- `https://mangadex.org/title/123/one-piece-digital` → "one piece digital"
+- `https://mangadex.org/title/123` → "123"
+
+The manga name is displayed as a clickable link in the task card, opening the MangaDex page in a new tab.
+
+### Task Lifecycle
+
+1. **Submit** - User submits URL → `POST /api/download` → Task ID returned
+2. **Poll** - JavaScript polls `GET /api/status/{task_id}` every 2 seconds
+3. **Update** - Task card updates with status (queued → started → finished/failed)
+4. **Persist** - Task state saved to sessionStorage after each update
+5. **Complete** - Polling stops when status is finished/failed
+6. **Dismiss** - User can remove task card (clears from sessionStorage)
+
+### Retry Functionality
+
+When a task fails, a "Retry" button appears. Clicking it:
+1. Retrieves the URL from the stored task data
+2. Removes the failed task from state and sessionStorage
+3. Pre-fills the URL input field
+4. User can submit to create a new download attempt
+
+### Security
+
+- **XSS Prevention**: All user data is escaped via `escapeHtml()` before rendering
+- **CSRF**: Not needed (no authentication, stateless API)
+- **URL Validation**: Both client-side (HTML5 `required` attribute) and server-side validation
+
+### Browser Compatibility
+
+- Modern browsers with ES6+ support (2020+)
+- SessionStorage support required
+- Tested with Chrome, Firefox, Safari
 
 ## Configuration
 

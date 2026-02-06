@@ -54,9 +54,11 @@ const TaskManager = {
     /**
      * Add a new task
      * @param {string} taskId - Task ID
+     * @param {string} url - MangaDex URL for this task
      */
-    addTask(taskId) {
-        this.tasks.set(taskId, { status: 'queued' });
+    addTask(taskId, url) {
+        this.tasks.set(taskId, { status: 'queued', url: url });
+        this.saveTasks();
         this.startPolling(taskId);
     },
 
@@ -66,7 +68,14 @@ const TaskManager = {
      * @param {Object} status - Status data from API
      */
     updateTask(taskId, status) {
+        // Preserve URL from existing task data if not in status
+        const existingTask = this.tasks.get(taskId);
+        if (existingTask && existingTask.url && !status.url) {
+            status.url = existingTask.url;
+        }
+
         this.tasks.set(taskId, status);
+        this.saveTasks();
         UI.renderTask(taskId, status);
 
         // Stop polling if task is finished or failed
@@ -129,7 +138,40 @@ const TaskManager = {
     removeTask(taskId) {
         this.stopPolling(taskId);
         this.tasks.delete(taskId);
+        this.saveTasks();
         UI.removeTaskCard(taskId);
+    },
+
+    /**
+     * Save tasks to sessionStorage
+     */
+    saveTasks() {
+        const data = {};
+        for (const [id, task] of this.tasks) {
+            data[id] = task;
+        }
+        sessionStorage.setItem('mangadex-tasks', JSON.stringify(data));
+    },
+
+    /**
+     * Load tasks from sessionStorage
+     */
+    loadTasks() {
+        const raw = sessionStorage.getItem('mangadex-tasks');
+        if (!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            for (const [id, task] of Object.entries(data)) {
+                this.tasks.set(id, task);
+                UI.renderTask(id, task);
+                // Resume polling for non-terminal tasks
+                if (task.status !== 'finished' && task.status !== 'failed') {
+                    this.startPolling(id);
+                }
+            }
+        } catch {
+            // Corrupt data, ignore
+        }
     },
 };
 
@@ -152,10 +194,12 @@ const UI = {
         }
 
         // Build card HTML
+        const mangaName = status.url ? this.extractMangaName(status.url) : null;
         let html = `
             <div class="task-header">
                 <div>
                     <span class="task-id">Task ID: ${this.escapeHtml(taskId)}</span>
+                    ${mangaName ? `<span class="task-url"><a href="${this.escapeHtml(status.url)}" target="_blank" rel="noopener">${this.escapeHtml(mangaName)}</a></span>` : ''}
                     <span class="status-badge ${status.status}">${status.status}</span>
                 </div>
                 <div class="task-actions">
@@ -246,13 +290,17 @@ const UI = {
 
     /**
      * Retry a failed download
-     * @param {string} taskId - Failed task ID (not used, starts new download)
+     * @param {string} taskId - Failed task ID
      */
     retryTask(taskId) {
-        // Get the URL from the original submission (we don't store it, so just clear form)
-        // In a real app, we'd store the URL with the task
+        const task = TaskManager.tasks.get(taskId);
+        const url = task?.url;
         TaskManager.removeTask(taskId);
-        this.renderError('Please re-enter the URL and submit again.');
+        if (url) {
+            document.getElementById('manga-url').value = url;
+        } else {
+            this.renderError('Please re-enter the URL and submit again.');
+        }
     },
 
     /**
@@ -264,6 +312,22 @@ const UI = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    /**
+     * Extract manga name from MangaDex URL
+     * @param {string} url - MangaDex URL
+     * @returns {string} - Manga name or URL if extraction fails
+     */
+    extractMangaName(url) {
+        try {
+            const parts = new URL(url).pathname.split('/').filter(Boolean);
+            // parts = ["title", "uuid"] or ["title", "uuid", "slug"]
+            const raw = parts.length >= 3 ? parts[2] : (parts[1] || url);
+            return raw.replace(/-/g, ' ');
+        } catch {
+            return url;
+        }
     },
 };
 
@@ -307,7 +371,7 @@ async function handleSubmit(event) {
             UI.renderError(result.error);
         } else if (result.task_id) {
             // Success - add task and start polling
-            TaskManager.addTask(result.task_id);
+            TaskManager.addTask(result.task_id, url);
             // Clear form
             urlInput.value = '';
         } else {
@@ -326,4 +390,7 @@ async function handleSubmit(event) {
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('download-form');
     form.addEventListener('submit', handleSubmit);
+
+    // Load tasks from sessionStorage
+    TaskManager.loadTasks();
 });
