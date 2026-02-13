@@ -37,7 +37,7 @@ services:
     volumes:
       - downloads:/downloads/cache
     ports:
-      - "8080:8080"
+      - "5000:5000"
     depends_on:
       - redis
 
@@ -52,7 +52,7 @@ volumes:
   redis_data:
 ```
 
-Visit `http://localhost:8080`
+Visit `http://localhost:5000`
 
 ---
 
@@ -86,8 +86,8 @@ services:
       traefik.http.routers.mangadex-dl-wui-vibed.service: mangadex-dl-wui-vibed
       traefik.http.routers.mangadex-dl-wui-vibed.tls: true
       traefik.http.routers.mangadex-dl-wui-vibed.tls.certresolver: letsencrypt-cloudflare-dns-challenge
-      traefik.http.services.mangadex-dl-wui-vibed.loadbalancer.server.port: 8080
-      local.yacht.port.8080: WebUI
+      traefik.http.services.mangadex-dl-wui-vibed.loadbalancer.server.port: 5000
+      local.yacht.port.5000: WebUI
 
   redis:
     image: redis:7-alpine
