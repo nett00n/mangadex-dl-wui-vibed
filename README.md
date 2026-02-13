@@ -6,6 +6,7 @@ A web-based user interface for [mangadex-downloader](https://github.com/mansuf/m
 ![Python](https://img.shields.io/badge/python-%3E%3D3.12-blue.svg)
 ![Flask](https://img.shields.io/badge/flask-3.1-green.svg)
 [![Docker Hub](https://img.shields.io/docker/pulls/5mdt/mangadex-dl-wui-vibed)](https://hub.docker.com/r/5mdt/mangadex-dl-wui-vibed)
+[![Quay.io](https://img.shields.io/badge/quay.io-5mdt%2Fmangadex--dl--wui--vibed-red?logo=redhat)](https://quay.io/repository/5mdt/mangadex-dl-wui-vibed)
 [![mangadex-downloader](https://img.shields.io/badge/mangadex--downloader-%3E%3D3.1-orange)](https://github.com/mansuf/mangadex-downloader)
 
 ## ⚠️ Disclaimer
@@ -108,10 +109,12 @@ Visit http://localhost:5000
 
 ### Running (Production - Pre-built Image)
 
-A pre-built multi-arch image (`linux/amd64`, `linux/arm64`) is available on Docker Hub:
+A pre-built multi-arch image (`linux/amd64`, `linux/arm64`) is available on Docker Hub and Quay.io:
 
 ```
-docker pull 5mdt/mangadex-dl-wui-vibed:release
+docker pull docker.io/5mdt/mangadex-dl-wui-vibed:release
+# or
+docker pull quay.io/5mdt/mangadex-dl-wui-vibed:release
 ```
 
 | Tag | Updated on |
@@ -125,7 +128,7 @@ docker pull 5mdt/mangadex-dl-wui-vibed:release
 ```yaml
 services:
   app:
-    image: 5mdt/mangadex-dl-wui-vibed:release
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
     restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379/0
@@ -157,7 +160,7 @@ volumes:
 ```yaml
 services:
   app:
-    image: 5mdt/mangadex-dl-wui-vibed:release
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
     restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379/0

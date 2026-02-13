@@ -7,6 +7,7 @@ on:
       - develop
     tags:
       - "*"
+  workflow_dispatch:
 
 jobs:
   check:
@@ -56,6 +57,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to Quay.io
+        if: steps.decide.outputs.should_build == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USERNAME }}
+          password: ${{ secrets.QUAY_IO_TOKEN }}
+
       - name: Check if SHA image already exists
         id: check_sha
         if: steps.decide.outputs.should_build == 'true'
@@ -90,12 +99,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to Quay.io
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USERNAME }}
+          password: ${{ secrets.QUAY_IO_TOKEN }}
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             docker.io/5mdt/mangadex-dl-wui-vibed
+            quay.io/5mdt/mangadex-dl-wui-vibed
           tags: |
             type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag
@@ -127,12 +144,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to Quay.io
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_IO_USERNAME }}
+          password: ${{ secrets.QUAY_IO_TOKEN }}
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             docker.io/5mdt/mangadex-dl-wui-vibed
+            quay.io/5mdt/mangadex-dl-wui-vibed
           tags: |
             type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag

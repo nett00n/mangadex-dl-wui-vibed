@@ -3,8 +3,20 @@
 A browser-based web UI for [mangadex-downloader](https://github.com/mansuf/mangadex-downloader). Paste a MangaDex URL, hit Download, and get a CBZ file — no command line required.
 
 [![Docker Hub](https://img.shields.io/docker/pulls/5mdt/mangadex-dl-wui-vibed)](https://hub.docker.com/r/5mdt/mangadex-dl-wui-vibed)
+[![Quay.io](https://img.shields.io/badge/quay.io-5mdt%2Fmangadex--dl--wui--vibed-red?logo=redhat)](https://quay.io/repository/5mdt/mangadex-dl-wui-vibed)
 [![GitHub](https://img.shields.io/badge/source-GitHub-181717?logo=github)](https://github.com/nett00n/mangadex-dl-wui-vibed)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://github.com/nett00n/mangadex-dl-wui-vibed/blob/main/LICENSE.md)
+
+---
+
+## Registries
+
+The image is published to multiple registries:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `5mdt/mangadex-dl-wui-vibed` |
+| Quay.io | `quay.io/5mdt/mangadex-dl-wui-vibed` |
 
 ---
 
@@ -25,7 +37,7 @@ A browser-based web UI for [mangadex-downloader](https://github.com/mansuf/manga
 ```yaml
 services:
   app:
-    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    image: 5mdt/mangadex-dl-wui-vibed:release
     restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379/0
@@ -61,7 +73,7 @@ Visit `http://localhost:5000`
 ```yaml
 services:
   app:
-    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    image: 5mdt/mangadex-dl-wui-vibed:release
     restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379/0
