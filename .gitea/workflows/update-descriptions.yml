@@ -1,0 +1,36 @@
+name: Update Registry Descriptions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKERHUB_REPO: 5mdt/mangadex-dl-wui-vibed
+  DOCKERHUB_SHORT_DESC: "Web UI for mangadex-downloader — download manga as CBZ files"
+  QUAY_REPO: 5mdt/mangadex-dl-wui-vibed
+  QUAY_SHORT_DESC: "Web UI for mangadex-downloader. Full docs: https://github.com/nett00n/mangadex-dl-wui-vibed/blob/main/docs/docker-registries-readme.md"
+
+jobs:
+  update-descriptions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Docker Hub full and short description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.DOCKERHUB_REPO }}
+          short-description: ${{ env.DOCKERHUB_SHORT_DESC }}
+          readme-filepath: ./docs/docker-registries-readme.md
+
+      - name: Update Quay.io description
+        run: |
+          curl -sf -X PUT "https://quay.io/api/v1/repository/${{ env.QUAY_REPO }}" \
+            -H "Authorization: Bearer ${{ secrets.QUAY_IO_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"description\": \"${{ env.QUAY_SHORT_DESC }}\"}"
