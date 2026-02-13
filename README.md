@@ -3,8 +3,10 @@
 A web-based user interface for [mangadex-downloader](https://github.com/mansuf/mangadex-downloader), providing a simple browser interface to download manga from MangaDex as CBZ files.
 ![alt text](docs/static/screenshot.png)
 ![License](https://img.shields.io/badge/license-GPLv3-blue.svg)
-![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+![Python](https://img.shields.io/badge/python-%3E%3D3.12-blue.svg)
 ![Flask](https://img.shields.io/badge/flask-3.1-green.svg)
+[![Docker Hub](https://img.shields.io/docker/pulls/5mdt/mangadex-dl-wui-vibed)](https://hub.docker.com/r/5mdt/mangadex-dl-wui-vibed)
+[![mangadex-downloader](https://img.shields.io/badge/mangadex--downloader-%3E%3D3.1-orange)](https://github.com/mansuf/mangadex-downloader)
 
 ## ⚠️ Disclaimer
 
@@ -103,6 +105,102 @@ Visit http://localhost:5000
 - 🔄 Hot reload - code changes automatically restart the app
 - 🐛 Debug mode - detailed error messages
 - 📝 Verbose logging - see what's happening
+
+### Running (Production - Pre-built Image)
+
+A pre-built multi-arch image (`linux/amd64`, `linux/arm64`) is available on Docker Hub:
+
+```
+docker pull 5mdt/mangadex-dl-wui-vibed:release
+```
+
+| Tag | Updated on |
+|-----|-----------|
+| `release` | every push to `main` |
+| `v1.2.3` | git tag pushes |
+| `sha-<commit>` | every build |
+
+#### Minimal docker-compose.yml
+
+```yaml
+services:
+  app:
+    image: 5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+    volumes:
+      - downloads:/downloads/cache
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  downloads:
+  redis_data:
+```
+
+#### With Traefik and Watchtower
+
+```yaml
+services:
+  app:
+    image: 5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+    volumes:
+      - downloads:/downloads/cache
+    depends_on:
+      - redis
+    networks:
+      - traefik_default
+      - default
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+      traefik.docker.network: traefik_default
+      traefik.enable: true
+      traefik.http.routers.mangadex-dl-wui-vibed.entrypoints: websecure
+      traefik.http.routers.mangadex-dl-wui-vibed.rule: Host(`${SERVICE_NAME_OVERRIDE:-mangadex-dl-wui-vibed}.${DOMAIN_NAME:-local}`)
+      traefik.http.routers.mangadex-dl-wui-vibed.service: mangadex-dl-wui-vibed
+      traefik.http.routers.mangadex-dl-wui-vibed.tls: true
+      traefik.http.routers.mangadex-dl-wui-vibed.tls.certresolver: letsencrypt-cloudflare-dns-challenge
+      traefik.http.services.mangadex-dl-wui-vibed.loadbalancer.server.port: 8080
+      local.yacht.port.8080: WebUI
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  downloads:
+  redis_data:
+
+networks:
+  traefik_default:
+    external: true
+```
+
+Set `DOMAIN_NAME` and optionally `SERVICE_NAME_OVERRIDE` in your `.env` file or environment.
 
 ### Running (Production - Docker)
 
