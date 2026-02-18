@@ -56,6 +56,25 @@ def fake_redis_conn() -> fakeredis.FakeRedis:
     return fakeredis.FakeRedis(decode_responses=True)
 
 
+@pytest.fixture(autouse=True)
+def isolate_redis() -> Generator[None, None, None]:
+    """Inject fake Redis into app.tasks singletons for every test.
+
+    Uses decode_responses=False (the RQ default) so Job.fetch works correctly.
+    Prevents tests from connecting to a real Redis instance.
+    """
+    import app.tasks as tasks_mod
+
+    fake_rq_redis = fakeredis.FakeRedis()
+    original_conn = tasks_mod._redis_conn
+    original_queue = tasks_mod._queue
+    tasks_mod._redis_conn = fake_rq_redis
+    tasks_mod._queue = None
+    yield
+    tasks_mod._redis_conn = original_conn
+    tasks_mod._queue = original_queue
+
+
 @pytest.fixture
 def rq_queue(fake_redis_conn: fakeredis.FakeRedis) -> Queue:
     """Create an RQ queue backed by fake Redis.

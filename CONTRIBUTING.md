@@ -213,6 +213,26 @@ pytest -s
 pytest -k "test_download"
 ```
 
+### CI Script (`scripts/ci.sh`)
+
+Runs all checks (format, lint, tests) inside a throwaway Docker container — no local Python environment needed.
+
+```shell
+# Check only (default)
+./scripts/ci.sh
+
+# Auto-format files, then check and test
+./scripts/ci.sh --fix
+```
+
+The script:
+1. Spins up a `python:3.12-slim` container with the project mounted at `/app`
+2. Installs the package and dev dependencies
+3. Runs `black --check`, `isort --check`, `ruff check`
+4. Runs `pytest --ignore=tests/test_ui.py`
+
+Use this when your local `.venv` is unavailable or you want a clean-room verification before pushing.
+
 ### Test Organization
 
 - `test_validators.py`: URL validation logic

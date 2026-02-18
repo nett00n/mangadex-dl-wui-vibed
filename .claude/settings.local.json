@@ -17,7 +17,8 @@
       "WebFetch(domain:mangadex-dl.mansuf.link)",
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(bash scripts/ci.sh:*)"
     ]
   }
 }
