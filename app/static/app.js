@@ -253,9 +253,14 @@ const UI = {
         if (status.status === 'finished' && status.files && status.files.length > 0) {
             html += '<div class="file-list"><h4>Downloaded Files:</h4><ul>';
             for (const file of status.files) {
-                const filename = file.split('/').pop();
-                const fileUrl = ApiClient.getFileUrl(taskId, filename);
-                html += `<li><a href="${fileUrl}" download>${this.escapeHtml(filename)}</a></li>`;
+                const parts = file.split('/');
+                const chapterName = parts[parts.length - 1];
+                const seriesName = parts.length >= 2 ? parts[parts.length - 2] : null;
+                const displayName = seriesName
+                    ? `${this.sanitizeFilename(seriesName)} - ${this.sanitizeFilename(chapterName)}`
+                    : this.sanitizeFilename(chapterName);
+                const fileUrl = ApiClient.getFileUrl(taskId, chapterName);
+                html += `<li><a href="${fileUrl}" download="${this.escapeHtml(displayName)}">${this.escapeHtml(displayName)}</a></li>`;
             }
             html += '</ul></div>';
         }
@@ -319,6 +324,15 @@ const UI = {
         } else {
             this.renderError('Please re-enter the URL and submit again.');
         }
+    },
+
+    /**
+     * Sanitize a filename by replacing characters unsafe on Windows/Linux/macOS
+     * @param {string} name - Raw name string
+     * @returns {string}
+     */
+    sanitizeFilename(name) {
+        return name.replace(/[/<>:"\\|?*]/g, '_').replace(/_+/g, '_').replace(/^[_ .]+|[_ .]+$/g, '') || 'download';
     },
 
     /**

@@ -115,6 +115,23 @@ def sample_cbz_file(cache_dir: Path) -> Path:
 
 
 @pytest.fixture
+def sample_cbz_in_series_dir(cache_dir: Path) -> Path:
+    """Create a dummy CBZ file inside a series subdirectory for testing.
+
+    Args:
+        cache_dir: Cache directory path
+
+    Returns:
+        Path: Path to created CBZ file (under cache_dir/Test Series/)
+    """
+    series_dir = cache_dir / "Test Series"
+    series_dir.mkdir()
+    cbz_file = series_dir / "test-chapter.cbz"
+    cbz_file.write_bytes(b"fake cbz content")
+    return cbz_file
+
+
+@pytest.fixture
 def app_with_dirs(cache_dir: Path, temp_dir: Path) -> Flask:
     """Create Flask app with custom cache and temp directories.
 

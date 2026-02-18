@@ -115,11 +115,12 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
 ### Caching Strategy
 
 - **Persistent cache**: `CACHE_DIR` (default: `/downloads/cache`) stores all manga downloads
-- `mangadex-dl` invoked with `--path <CACHE_DIR>` to leverage native chapter skip logic
-- **Directory structure**: `mangadex-dl` creates per-manga subdirectories (`CACHE_DIR/<Manga Title>/`)
+- `mangadex-dl` invoked with `--path CACHE_DIR/{manga.title}` — the `{manga.title}` placeholder is resolved by `mangadex-dl` at download time to the real manga title, creating a per-manga subdirectory automatically
+- **Directory structure**: `CACHE_DIR/<Manga Title>/Vol. 1 Ch. 1.cbz` (volume and chapter in filename via `--filename-chapter`)
 - `scan_for_cbz` uses recursive glob (`rglob`) to find CBZ files in all subdirectories
 - `download_manga` snapshots files before/after download to return only newly created files per job
-- Re-downloading the same manga reuses existing CBZ files (near-instant)
+- Re-downloading the same manga reuses existing CBZ files (near-instant) because the same URL produces the same `{manga.title}` path
+- **Display filenames**: `get_display_filename()` derives a prefixed display name (e.g., `"Series Name - Vol. 1 Ch. 1.cbz"`) from the file's path structure without renaming on disk, preserving cache skip logic; used for `Content-Disposition` headers and UI link text
 - Task records expire after `TASK_TTL_SECONDS` (default: 1 hour)
 - Cached files expire after `CACHE_TTL_SECONDS` (default: 7 days; 0 = never expire)
 - Cleanup handles files in subdirectories and removes empty directories
@@ -183,8 +184,9 @@ def run_mangadex_dl(url: str, cache_dir: str, timeout: int = 3600) -> tuple[int,
     if not exe:
         raise RuntimeError("mangadex-dl not found in PATH")
 
-    args = [exe, "--save-as", "cbz", "--path", str(cache_dir),
-            "--input-pos", "*", "--progress-bar-layout", "none", url]
+    args = [exe, "--save-as", "cbz", "--path", f"{cache_dir}/{{manga.title}}",
+            "--input-pos", "*", "--progress-bar-layout", "none",
+            "--filename-chapter", "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}", url]
 
     proc = subprocess.run(args, check=False, capture_output=True, text=True, timeout=timeout)
     return proc.returncode, proc.stdout, proc.stderr
@@ -307,7 +309,7 @@ Download a completed CBZ file.
 
 **Response (200 OK):**
 - Content-Type: `application/x-cbz`
-- Content-Disposition: `attachment; filename="{filename}"`
+- Content-Disposition: `attachment; filename="{series_name} - {filename}"`
 - Body: CBZ file binary data
 
 **Error Responses:**
@@ -465,14 +467,19 @@ The application invokes `mangadex-dl` with these flags:
 
 ```shell
 mangadex-dl \
-  --save-as cbz \                # Output format
-  --path <CACHE_DIR> \           # Cache directory for persistence
-  --input-pos "*" \              # Download all chapters (wildcard)
-  --progress-bar-layout none \   # Disable progress bar for cleaner output
+  --save-as cbz \                                          # Output format
+  --path "CACHE_DIR/{manga.title}" \                       # Per-manga subdirectory
+  --input-pos "*" \                                        # Download all chapters (wildcard)
+  --progress-bar-layout none \                             # Disable progress bar for cleaner output
+  --filename-chapter "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}" \  # Volume+chapter in filename
   <url>
 ```
 
-**Note:** `--input-pos "*"` is required to download all chapters without interactive prompts.
+**Notes:**
+- `--input-pos "*"` is required to download all chapters without interactive prompts.
+- `{manga.title}` in `--path` is a `mangadex-dl` path placeholder resolved to the real manga title at runtime (not a Python f-string). In Python code, the double braces `{{manga.title}}` produce the literal `{manga.title}` string.
+- `{chapter.volume}`, `{chapter.chapter}`, `{file_ext}` in `--filename-chapter` are also `mangadex-dl` placeholders. If a chapter has no volume data, `{chapter.volume}` may render as empty or `None`.
+- The resulting cache structure is: `CACHE_DIR/<Manga Title>/Vol. 1 Ch. 1.cbz`
 
 ## Troubleshooting
 

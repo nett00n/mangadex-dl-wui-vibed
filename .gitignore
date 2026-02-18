@@ -58,3 +58,5 @@ downloads/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+.*TOKEN

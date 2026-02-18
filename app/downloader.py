@@ -49,11 +49,13 @@ def run_mangadex_dl(
         "--save-as",
         "cbz",
         "--path",
-        str(cache_dir),
+        f"{cache_dir}/{{manga.title}}",
         "--input-pos",
         "*",
         "--progress-bar-layout",
         "none",
+        "--filename-chapter",
+        "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}",
         url,
     ]
 
@@ -151,11 +153,13 @@ def build_cli_args(url: str, cache_dir: str) -> list[str]:
         "--save-as",
         "cbz",
         "--path",
-        cache_dir,
+        f"{cache_dir}/{{manga.title}}",
         "--input-pos",
         "*",
         "--progress-bar-layout",
         "none",
+        "--filename-chapter",
+        "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}",
         url,
     ]
 
@@ -171,3 +175,40 @@ def scan_for_cbz(directory: str) -> list[str]:
     """
     dir_path = Path(directory)
     return sorted(str(f.resolve()) for f in dir_path.rglob("*.cbz"))
+
+
+def sanitize_filename(name: str) -> str:
+    """Remove or replace characters unsafe for filenames.
+
+    Args:
+        name: Raw filename string
+
+    Returns:
+        str: Sanitized filename safe for all major operating systems
+    """
+    sanitized = re.sub(r'[/<>:"\\|?*]', "_", name)
+    sanitized = re.sub(r"_+", "_", sanitized)
+    sanitized = sanitized.strip(" _.")
+    return sanitized or "download"
+
+
+def get_display_filename(file_path: str, cache_dir: str) -> str:
+    """Build a display filename prefixed with the manga series name.
+
+    The file is NOT renamed on disk; this name is used only for Content-Disposition
+    headers and UI display so that mangadex-dl's cache skip logic is preserved.
+
+    Args:
+        file_path: Absolute path to the CBZ file
+        cache_dir: Absolute path to the cache root directory
+
+    Returns:
+        str: Display filename, e.g. "Series Name - Chapter 1.cbz"
+    """
+    path = Path(file_path).resolve()
+    cache = Path(cache_dir).resolve()
+    if path.parent == cache:
+        return sanitize_filename(path.name)
+    series_name = sanitize_filename(path.parent.name)
+    chapter_name = sanitize_filename(path.name)
+    return f"{series_name} - {chapter_name}"

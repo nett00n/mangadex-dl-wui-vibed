@@ -93,7 +93,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 **Requirements**:
 - FR-3.1: Enqueue download job to RQ for worker processing
 - FR-3.2: Invoke `mangadex-dl` via subprocess
-- FR-3.3: Use persistent cache directory (`--path` flag)
+- FR-3.3: Use persistent cache directory with per-manga subdirectory (`--path CACHE_DIR/{manga.title}`)
 - FR-3.4: Download all chapters (`--input-pos "*"`)
 - FR-3.5: Save as CBZ format (`--save-as cbz`)
 - FR-3.6: Capture stdout/stderr from subprocess
@@ -101,6 +101,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-3.8: Update task status atomically
 - FR-3.9: Handle subprocess errors gracefully
 - FR-3.10: Record completed CBZ file paths
+- FR-3.11: Name chapter files with volume and chapter numbers (`--filename-chapter "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}"`)
 
 ### FR-4: Progress Tracking
 
@@ -125,7 +126,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-5.3: Validate filename belongs to the task
 - FR-5.4: Serve file from persistent cache
 - FR-5.5: Set appropriate content-type (application/x-cbz)
-- FR-5.6: Set content-disposition for browser download
+- FR-5.6: Set content-disposition with manga series name prefix (e.g., "Series Name - Chapter 1.cbz")
 - FR-5.7: Return 404 if file not found
 - FR-5.8: Return 403 if filename doesn't match task
 
@@ -135,7 +136,7 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 
 **Requirements**:
 - FR-6.1: Maintain persistent cache directory
-- FR-6.2: Organize cache by manga title subdirectories
+- FR-6.2: Organize cache by manga title subdirectories using `mangadex-dl`'s `{manga.title}` path placeholder, which resolves to the real manga title at download time
 - FR-6.3: Use `mangadex-dl`'s native skip-downloaded logic
 - FR-6.4: Reuse existing CBZ files for repeated URLs
 - FR-6.5: Track cache file association with tasks

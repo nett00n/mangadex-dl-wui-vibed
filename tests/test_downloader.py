@@ -13,7 +13,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.downloader import build_cli_args, download_manga, parse_progress, scan_for_cbz
+from app.downloader import (
+    build_cli_args,
+    download_manga,
+    get_display_filename,
+    parse_progress,
+    sanitize_filename,
+    scan_for_cbz,
+)
 
 
 def test_build_cli_args() -> None:
@@ -28,14 +35,44 @@ def test_build_cli_args() -> None:
         "--save-as",
         "cbz",
         "--path",
-        cache_dir,
+        f"{cache_dir}/{{manga.title}}",
         "--input-pos",
         "*",
         "--progress-bar-layout",
         "none",
+        "--filename-chapter",
+        "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}",
         url,
     ]
     assert args == expected
+
+
+def test_cli_args_contain_manga_title_path_placeholder() -> None:
+    """Test that --path arg contains literal {manga.title} placeholder (UT-DL-018)."""
+    url = "https://mangadex.org/title/test-123"
+    cache_dir = "/test/cache"
+
+    args = build_cli_args(url, cache_dir)
+
+    path_idx = args.index("--path")
+    path_value = args[path_idx + 1]
+    assert "{manga.title}" in path_value
+    assert path_value == "/test/cache/{manga.title}"
+
+
+def test_cli_args_contain_filename_chapter_format() -> None:
+    """Test --filename-chapter arg with volume placeholder is present (UT-DL-019)."""
+    url = "https://mangadex.org/title/test-123"
+    cache_dir = "/test/cache"
+
+    args = build_cli_args(url, cache_dir)
+
+    assert "--filename-chapter" in args
+    fmt_idx = args.index("--filename-chapter")
+    fmt_value = args[fmt_idx + 1]
+    assert "{chapter.volume}" in fmt_value
+    assert "{chapter.chapter}" in fmt_value
+    assert "{file_ext}" in fmt_value
 
 
 def test_download_manga_success(tmp_path: Path) -> None:
@@ -52,12 +89,13 @@ def test_download_manga_success(tmp_path: Path) -> None:
         (manga_dir / "chapter-1.cbz").write_bytes(b"fake content")
         return MagicMock(returncode=0, stdout="", stderr="")
 
-    with patch("subprocess.run", side_effect=create_files) as mock_run:
-        files = download_manga(url, str(cache_dir))
+    with patch("app.downloader.which", return_value="/usr/local/bin/mangadex-dl"):
+        with patch("subprocess.run", side_effect=create_files) as mock_run:
+            files = download_manga(url, str(cache_dir))
 
-        assert mock_run.called
-        assert len(files) == 1
-        assert files[0].endswith(".cbz")
+            assert mock_run.called
+            assert len(files) == 1
+            assert files[0].endswith(".cbz")
 
 
 def test_download_manga_subprocess_failure(tmp_path: Path) -> None:
@@ -67,15 +105,16 @@ def test_download_manga_subprocess_failure(tmp_path: Path) -> None:
 
     url = "https://mangadex.org/title/test-123"
 
-    with patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(
-            returncode=1,
-            stdout="",
-            stderr="Download failed: network error",
-        )
+    with patch("app.downloader.which", return_value="/usr/local/bin/mangadex-dl"):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=1,
+                stdout="",
+                stderr="Download failed: network error",
+            )
 
-        with pytest.raises(Exception, match="Download failed: network error"):
-            download_manga(url, str(cache_dir))
+            with pytest.raises(Exception, match="Download failed: network error"):
+                download_manga(url, str(cache_dir))
 
 
 def test_download_manga_invalid_url(tmp_path: Path) -> None:
@@ -118,11 +157,12 @@ def test_download_manga_timeout(tmp_path: Path) -> None:
 
     url = "https://mangadex.org/title/test-123"
 
-    with patch("subprocess.run") as mock_run:
-        mock_run.side_effect = subprocess.TimeoutExpired("mangadex-dl", 300)
+    with patch("app.downloader.which", return_value="/usr/local/bin/mangadex-dl"):
+        with patch("subprocess.run") as mock_run:
+            mock_run.side_effect = subprocess.TimeoutExpired("mangadex-dl", 300)
 
-        with pytest.raises(subprocess.TimeoutExpired):
-            download_manga(url, str(cache_dir))
+            with pytest.raises(subprocess.TimeoutExpired):
+                download_manga(url, str(cache_dir))
 
 
 def test_download_manga_filesystem_error(tmp_path: Path) -> None:
@@ -208,11 +248,79 @@ def test_download_manga_returns_only_new_files(tmp_path: Path) -> None:
         (new_manga_dir / "chapter-2.cbz").write_bytes(b"new content 2")
         return MagicMock(returncode=0, stdout="", stderr="")
 
-    with patch("subprocess.run", side_effect=create_new_files) as mock_run:
-        files = download_manga(url, str(cache_dir))
+    with patch("app.downloader.which", return_value="/usr/local/bin/mangadex-dl"):
+        with patch("subprocess.run", side_effect=create_new_files) as mock_run:
+            files = download_manga(url, str(cache_dir))
 
-        assert mock_run.called
-        # Should only return the 2 new files, not the pre-existing one
-        assert len(files) == 2
-        assert all("New Manga" in f for f in files)
-        assert not any("Existing Manga" in f for f in files)
+            assert mock_run.called
+            # Should only return the 2 new files, not the pre-existing one
+            assert len(files) == 2
+            assert all("New Manga" in f for f in files)
+            assert not any("Existing Manga" in f for f in files)
+
+
+def test_sanitize_filename_removes_unsafe_chars() -> None:
+    """Test sanitize_filename replaces filesystem-unsafe characters (UT-DL-011)."""
+    assert sanitize_filename("My:Manga/Title") == "My_Manga_Title"
+
+
+def test_sanitize_filename_empty_string() -> None:
+    """Test sanitize_filename returns fallback for empty/blank input (UT-DL-012)."""
+    assert sanitize_filename("") == "download"
+    assert sanitize_filename("...") == "download"
+
+
+def test_sanitize_filename_normal_name() -> None:
+    """Test sanitize_filename leaves safe names unchanged (UT-DL-013)."""
+    assert sanitize_filename("Chapter 1.cbz") == "Chapter 1.cbz"
+
+
+def test_get_display_filename_with_series_subdir(tmp_path: Path) -> None:
+    """Test display filename uses series subdirectory as prefix (UT-DL-014)."""
+    cache = tmp_path / "cache"
+    series_dir = cache / "Series Name"
+    series_dir.mkdir(parents=True)
+    cbz = series_dir / "Chapter 1.cbz"
+    cbz.write_bytes(b"")
+
+    result = get_display_filename(str(cbz), str(cache))
+
+    assert result == "Series Name - Chapter 1.cbz"
+
+
+def test_get_display_filename_root_level(tmp_path: Path) -> None:
+    """Test display filename for root-level cache file has no prefix (UT-DL-015)."""
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    cbz = cache / "file.cbz"
+    cbz.write_bytes(b"")
+
+    result = get_display_filename(str(cbz), str(cache))
+
+    assert result == "file.cbz"
+
+
+def test_get_display_filename_nested_subdir(tmp_path: Path) -> None:
+    """Test display filename uses immediate parent directory as prefix (UT-DL-016)."""
+    cache = tmp_path / "cache"
+    series_dir = cache / "Top" / "Series Name"
+    series_dir.mkdir(parents=True)
+    cbz = series_dir / "Chapter 1.cbz"
+    cbz.write_bytes(b"")
+
+    result = get_display_filename(str(cbz), str(cache))
+
+    assert result == "Series Name - Chapter 1.cbz"
+
+
+def test_get_display_filename_special_chars(tmp_path: Path) -> None:
+    """Test display filename sanitizes special chars in names (UT-DL-017)."""
+    cache = tmp_path / "cache"
+    series_dir = cache / "My: Manga"
+    series_dir.mkdir(parents=True)
+    cbz = series_dir / "Chapter 1.cbz"
+    cbz.write_bytes(b"")
+
+    result = get_display_filename(str(cbz), str(cache))
+
+    assert result == "My_ Manga - Chapter 1.cbz"

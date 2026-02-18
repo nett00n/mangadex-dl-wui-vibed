@@ -66,9 +66,18 @@
 | UT-DL-005 | Detect cached chapters | Mock stdout with "skipped" | `parse_progress(stdout)` | Recognizes cached chapters | US-3.1 |
 | UT-DL-006 | CLI timeout | Mock long-running process | `download_manga(url, cache_dir)` | Timeout handled gracefully | US-4.2 |
 | UT-DL-007 | Filesystem error | Mock fs write failure | `download_manga(url, cache_dir)` | Exception with helpful message | US-4.2 |
-| UT-DL-008 | Generate CLI args | Valid inputs | `build_cli_args(url, cache_dir)` | Correct flags in list | US-1.1 |
+| UT-DL-008 | Generate CLI args with per-manga path and filename format | Valid inputs | `build_cli_args(url, cache_dir)` | Correct flags including `--path CACHE/{manga.title}` and `--filename-chapter` | US-1.1 |
+| UT-DL-018 | CLI args path contains `{manga.title}` placeholder | Valid inputs | `build_cli_args(url, cache_dir)` | `--path` value ends with `/{manga.title}` | US-1.1 |
+| UT-DL-019 | CLI args include `--filename-chapter` with volume format | Valid inputs | `build_cli_args(url, cache_dir)` | `--filename-chapter` present; format contains `{chapter.volume}`, `{chapter.chapter}`, `{file_ext}` | US-1.1 |
 | UT-DL-009 | Scan output directory | Dir with CBZ files | `scan_for_cbz(cache_dir)` | Returns all CBZ file paths | US-1.4 |
 | UT-DL-010 | Empty output directory | Empty dir | `scan_for_cbz(cache_dir)` | Returns empty list | US-1.5 |
+| UT-DL-011 | Sanitize filename removes unsafe chars | Input `'My:Manga/Title'` | `sanitize_filename(name)` | Returns `'My_Manga_Title'` | US-1.4 |
+| UT-DL-012 | Sanitize filename handles empty string | Input `''` | `sanitize_filename(name)` | Returns `'download'` | US-1.4 |
+| UT-DL-013 | Sanitize filename preserves normal names | Input `'Chapter 1.cbz'` | `sanitize_filename(name)` | Returns `'Chapter 1.cbz'` unchanged | US-1.4 |
+| UT-DL-014 | Display filename with series subdirectory | File at `cache/Series Name/Chapter 1.cbz` | `get_display_filename(path, cache)` | Returns `'Series Name - Chapter 1.cbz'` | US-1.4 |
+| UT-DL-015 | Display filename for root-level file | File at `cache/file.cbz` | `get_display_filename(path, cache)` | Returns `'file.cbz'` (no prefix) | US-1.4 |
+| UT-DL-016 | Display filename for nested subdirectory | File at `cache/Top/Series/ch.cbz` | `get_display_filename(path, cache)` | Uses immediate parent `'Series'` as prefix | US-1.4 |
+| UT-DL-017 | Display filename sanitizes special characters | Series name `'My: Manga'` | `get_display_filename(path, cache)` | Returns `'My_ Manga - Chapter 1.cbz'` | US-1.4 |
 
 ---
 
@@ -162,6 +171,7 @@
 | IT-API-013 | Home page load | `GET /` | HTML page with form | 200 | US-6.3 |
 | IT-API-014 | CORS not set | `GET /` | No CORS headers | 200 | NFR-4 |
 | IT-API-015 | Content-Type for CBZ | `GET /api/file/<id>/<file.cbz>` | `Content-Type: application/x-cbz` | 200 | US-1.4 |
+| IT-API-016 | Series prefix in Content-Disposition | `GET /api/file/<id>/<file.cbz>` (file in series subdir) | `Content-Disposition` contains `"Series Name - file.cbz"` | 200 | US-1.4 |
 
 ---
 
@@ -192,12 +202,12 @@
 | `validators.py` | 100% | All URL patterns, edge cases | ✅ 10/10 passing |
 | `tasks.py` | 90% | RQ integration, job status queries | ✅ 10/10 passing |
 | `worker.py` | 90% | Job execution, progress updates | ✅ 6/6 passing |
-| `downloader.py` | 90% | Subprocess handling, parsing | ✅ 10/10 passing |
+| `downloader.py` | 90% | Subprocess handling, parsing | ✅ 19/19 passing |
 | `cleanup.py` | 85% | Cache expiration, file cleanup | ✅ 8/8 passing |
 | `config.py` | 100% | All env vars, validation | ✅ 13/13 passing |
-| `routes.py` | 85% | All endpoints, error responses | ✅ 15/15 passing |
+| `routes.py` | 85% | All endpoints, error responses | ✅ 16/16 passing |
 
-**Unit Test Summary**: 82/82 passing (Phases 1-4 complete)
+**Unit Test Summary**: 91/91 passing (Phases 1-4 complete + Phase 6 display filename + Phase 7 path placeholders)
 
 ### UI Tests (Playwright)
 
@@ -217,13 +227,13 @@
 
 | Category | Minimum Tests | Focus Areas | Status |
 |----------|---------------|-------------|--------|
-| API Endpoints | 15 | All routes, error cases | ✅ 15/15 passing |
+| API Endpoints | 16 | All routes, error cases | ✅ 16/16 passing |
 | E2E Workflows | 10 | Complete user journeys | ✅ 10/10 passing |
 | Concurrency | 5 | RQ workers, Redis concurrency | ✅ Covered |
 | Security | 5 | Path traversal, input validation | ✅ Covered |
 | Queue Management | 5 | Job enqueue, status, cancellation | ✅ Covered |
 
-**Overall Test Summary**: **103 tests passing, 1 skipped** ✅
+**Overall Test Summary**: **111 tests passing, 1 skipped** ✅
 
 ---
 
@@ -338,18 +348,18 @@ HTTPError: 404 Not Found
 - Testing: Playwright + pytest for real browser testing
 
 ### Overall Project Status
-- **Total: 103 tests passing, 1 skipped** ✅
+- **Total: 111 tests passing, 1 skipped** ✅
 - **All user stories implemented** (US-1.1 through US-7.2)
 - **Production-ready**
 
 ### Test Execution
 ```shell
 # Run all tests
-pytest -v  # 103 passed, 1 skipped
+pytest -v  # 111 passed, 1 skipped
 
 # Run UI tests only
 pytest tests/test_ui.py -v  # 21 passed, 1 skipped
 
 # Run backend tests only
-pytest tests/ --ignore=tests/test_ui.py  # 82 passed
+pytest tests/ --ignore=tests/test_ui.py  # 90 passed
 ```

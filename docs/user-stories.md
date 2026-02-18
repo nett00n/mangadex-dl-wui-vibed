@@ -75,8 +75,9 @@
 - When I view the task status
 - Then I see a list of all downloaded CBZ files
 - And each file has a download link
+- And each file's download name includes the manga series name as a prefix
 - When I click a download link
-- Then the CBZ file downloads to my browser
+- Then the CBZ file downloads to my browser with the prefixed filename
 
 **Related FRs**: FR-1.5, FR-4.4, FR-5.1, FR-5.2, FR-5.4, FR-5.5, FR-5.6
 **Status**: ✅ **Implemented** - Phase 5 (JS-UI-007, JS-UI-012, tests/test_ui.py)

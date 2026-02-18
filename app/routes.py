@@ -12,6 +12,8 @@ from pathlib import Path
 from flask import Blueprint, jsonify, render_template, request, send_file
 from werkzeug.wrappers.response import Response
 
+from app.config import Config
+from app.downloader import get_display_filename
 from app.tasks import enqueue_download, get_job_result, get_job_status
 from app.validators import is_valid_mangadex_url
 
@@ -117,7 +119,7 @@ def api_file(task_id: str, filename: str) -> tuple[Response, int]:
             matching_file,
             mimetype="application/x-cbz",
             as_attachment=True,
-            download_name=filename,
+            download_name=get_display_filename(str(matching_file), Config.CACHE_DIR),
         ),
         200,
     )

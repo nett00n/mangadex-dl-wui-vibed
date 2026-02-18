@@ -229,3 +229,27 @@ def test_cbz_content_type(client_with_dirs: FlaskClient, sample_cbz_file: Path) 
             "application/octet-stream",
             "application/zip",
         ]
+
+
+def test_file_download_has_series_prefix_in_filename(
+    client_with_dirs: FlaskClient,
+    sample_cbz_in_series_dir: Path,
+) -> None:
+    """Test Content-Disposition filename includes series name prefix (IT-API-016)."""
+    task_id = "test-task-series-123"
+    filename = sample_cbz_in_series_dir.name
+    cache_dir = str(sample_cbz_in_series_dir.parent.parent)
+
+    with (
+        patch("app.routes.get_job_result") as mock_get_result,
+        patch("app.routes.Config") as mock_config,
+    ):
+        mock_get_result.return_value = [str(sample_cbz_in_series_dir)]
+        mock_config.CACHE_DIR = cache_dir
+
+        response = client_with_dirs.get(f"/api/file/{task_id}/{filename}")
+
+        assert response.status_code == 200
+        content_disposition = response.headers.get("Content-Disposition", "")
+        assert "Test Series" in content_disposition
+        assert filename in content_disposition
