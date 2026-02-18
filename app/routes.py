@@ -20,7 +20,7 @@ from app.validators import is_valid_mangadex_url
 bp = Blueprint("main", __name__)
 
 
-@bp.route("/")  # type: ignore[misc]
+@bp.route("/")
 def index() -> str:
     """Render the main web UI page.
 
@@ -30,7 +30,7 @@ def index() -> str:
     return render_template("index.html")
 
 
-@bp.route("/api/download", methods=["POST"])  # type: ignore[misc]
+@bp.route("/api/download", methods=["POST"])
 def api_download() -> tuple[Response, int]:
     """Queue a manga download task.
 
@@ -57,7 +57,7 @@ def api_download() -> tuple[Response, int]:
     return jsonify({"task_id": task_id}), 200
 
 
-@bp.route("/api/status/<task_id>")  # type: ignore[misc]
+@bp.route("/api/status/<task_id>")
 def api_status(task_id: str) -> tuple[Response, int]:
     """Get the status of a download task.
 
@@ -81,7 +81,7 @@ def api_status(task_id: str) -> tuple[Response, int]:
     return jsonify(status), 200
 
 
-@bp.route("/api/file/<task_id>/<filename>")  # type: ignore[misc]
+@bp.route("/api/file/<task_id>/<filename>")
 def api_file(task_id: str, filename: str) -> tuple[Response, int]:
     """Serve a downloaded CBZ file.
 

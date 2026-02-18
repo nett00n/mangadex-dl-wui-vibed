@@ -9,10 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.12-slim
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install dependencies
         run: pip install -e '.[dev]' --no-deps -q && pip install flask rq redis gunicorn pytest pytest-cov pytest-timeout black isort ruff mypy types-redis fakeredis -q
       - name: Check formatting

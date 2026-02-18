@@ -71,12 +71,19 @@ warn_return_any = false
 module = "app.*"
 # Relax checking for stub implementations (TDD)
 allow_untyped_defs = true
+disallow_untyped_calls = false
 check_untyped_defs = false
 warn_return_any = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short --timeout=30"
+filterwarnings = [
+    # fakeredis/redis-py internal deprecations — not our code
+    "ignore:Call to '__init__' function with deprecated usage of input argument/s 'retry_on_timeout':DeprecationWarning",
+    "ignore:Call to '__init__' function with deprecated usage of input argument/s 'lib_name':DeprecationWarning",
+    "ignore:Call to '__init__' function with deprecated usage of input argument/s 'lib_version':DeprecationWarning",
+]
 markers = [
     "integration: end-to-end integration tests (may require Redis)",
     "ui: browser-based UI tests (requires Playwright)",

@@ -126,11 +126,13 @@ def test_failed_job_status(fake_redis_conn: fakeredis.FakeRedis) -> None:
         queue = Queue(connection=fake_redis_conn, is_async=False)
         mock_get_queue.return_value = queue
 
-        # Create failed job mock with exc_info attribute
+        # Create failed job mock
         job = MagicMock()
         job.id = "test-job-id"
         job._status = "failed"
-        job.exc_info = "Error message"
+        mock_result = MagicMock()
+        mock_result.exc_string = "Error message"
+        job.latest_result.return_value = mock_result
 
         with patch("app.tasks.Job.fetch") as mock_fetch:
             mock_fetch.return_value = job
@@ -139,7 +141,8 @@ def test_failed_job_status(fake_redis_conn: fakeredis.FakeRedis) -> None:
 
             assert status is not None
             assert status["status"] == "failed"
-            assert "error" in status or "exc_info" in status
+            assert "error" in status
+            assert status["error"] == "Error message"
 
 
 def test_concurrent_status_queries(fake_redis_conn: fakeredis.FakeRedis) -> None:

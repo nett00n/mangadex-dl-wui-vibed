@@ -213,23 +213,48 @@ pytest -s
 pytest -k "test_download"
 ```
 
-### CI Script (`scripts/ci.sh`)
+### Makefile
 
-Runs all checks (format, lint, tests) inside a throwaway Docker container — no local Python environment needed.
+All targets run in Docker — no local Python environment needed.
 
 ```shell
-# Check only (default)
-./scripts/ci.sh
+make ci        # all checks: fmt-check → lint → mypy → test + coverage
+make ci-fix    # auto-format, then all checks
+make test      # pytest + coverage only
+make lint      # ruff + mypy only
+make fmt       # black + isort (modifies files in place)
+make clean     # remove reports/, caches
+```
 
-# Auto-format files, then check and test
-./scripts/ci.sh --fix
+### CI Script (`scripts/ci.sh`)
+
+Runs checks inside a throwaway Docker container. Supports individual steps so the Makefile (and any other caller) can run only the checks it needs.
+
+```shell
+./scripts/ci.sh                   # all checks (default)
+./scripts/ci.sh --fix             # auto-format, then all checks
+./scripts/ci.sh --step=fmt        # format check only
+./scripts/ci.sh --step=fmt --fix  # auto-format only
+./scripts/ci.sh --step=lint       # ruff + mypy only
+./scripts/ci.sh --step=test       # pytest + coverage only
 ```
 
 The script:
-1. Spins up a `python:3.12-slim` container with the project mounted at `/app`
-2. Installs the package and dev dependencies
-3. Runs `black --check`, `isort --check`, `ruff check`
-4. Runs `pytest --ignore=tests/test_ui.py`
+1. Creates (if absent) a named Docker volume `mangadex-dl-wui-pip-cache` for pip downloads — subsequent runs are significantly faster
+2. Spins up a `python:3.12-slim` container with the project mounted at `/app`
+3. Installs dev dependencies with version constraints matching `pyproject.toml` (skips `mangadex-downloader`)
+4. Runs the requested step(s): `black`/`isort`, `ruff`, `mypy`, `pytest --cov`
+5. Re-owns all generated files in `reports/` to the calling user (avoids root-owned files from the Docker container)
+
+### Reports
+
+Generated into `reports/` (git-ignored):
+
+| File | Contents |
+|------|----------|
+| `reports/coverage.xml` | Cobertura XML coverage (for CI tools) |
+| `reports/htmlcov/index.html` | Interactive HTML coverage report |
+| `reports/mypy/index.txt` | mypy type-check output |
 
 Use this when your local `.venv` is unavailable or you want a clean-room verification before pushing.
 

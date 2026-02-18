@@ -81,10 +81,12 @@ def get_job_status(job_id: str) -> dict[str, str | list[str]] | None:
     result_dict = {"status": status}
 
     if status == "failed":
-        # Get error info if available
-        error = getattr(job, "exc_info", None)
-        if error:
-            result_dict["error"] = error
+        try:
+            latest = job.latest_result()
+            if latest is not None and latest.exc_string:
+                result_dict["error"] = latest.exc_string
+        except Exception:  # noqa: S110
+            pass
 
     return result_dict
 
