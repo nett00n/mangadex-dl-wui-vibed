@@ -44,3 +44,4 @@ class Config:
         min_value=0,
     )
     RQ_WORKER_COUNT = _get_positive_int_from_env("RQ_WORKER_COUNT", 3)
+    JOB_TIMEOUT_SECONDS = _get_positive_int_from_env("JOB_TIMEOUT_SECONDS", 3600)

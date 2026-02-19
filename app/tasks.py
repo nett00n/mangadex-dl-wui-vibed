@@ -58,6 +58,7 @@ def enqueue_download(url: str) -> str:
         worker.perform_download_job,
         url,
         result_ttl=Config.TASK_TTL_SECONDS,
+        job_timeout=Config.JOB_TIMEOUT_SECONDS,
     )
     return job.id
 

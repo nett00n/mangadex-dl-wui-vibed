@@ -109,6 +109,7 @@ All configuration via environment variables (see `.env.example`):
 | `TASK_TTL_SECONDS` | `3600` | Task record expiration (1 hour) |
 | `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (7 days; 0 = never expire) |
 | `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
+| `JOB_TIMEOUT_SECONDS` | `3600` | Max RQ job execution time (1 hour) |
 
 ## Development Workflow
 
