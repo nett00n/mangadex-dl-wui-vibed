@@ -1,6 +1,6 @@
 services:
   server:
-    image: docker.io/5mdt/mangadex-dl-server
+    image: docker.io/5mdt/mangadex-dl-wui-vibed
     build:
       context: .
       args:
@@ -10,6 +10,11 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads_cache:/downloads/cache
     depends_on:
@@ -27,7 +32,7 @@ services:
       retries: 3
 
   worker:
-    image: docker.io/5mdt/mangadex-dl-worker
+    image: docker.io/5mdt/mangadex-dl-wui-vibed
     build:
       context: .
       args:
@@ -36,6 +41,11 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads_cache:/downloads/cache
     depends_on:

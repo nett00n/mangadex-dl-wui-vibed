@@ -139,18 +139,43 @@ services:
       TASK_TTL_SECONDS: "3600"
       CACHE_TTL_SECONDS: "604800"
       RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads:/downloads/cache
     ports:
       - "5000:5000"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    command: rq worker --url redis://redis:6379/0
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
+    volumes:
+      - downloads:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   downloads:
@@ -171,10 +196,12 @@ services:
       TASK_TTL_SECONDS: "3600"
       CACHE_TTL_SECONDS: "604800"
       RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads:/downloads/cache
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - traefik_default
       - default
@@ -190,11 +217,36 @@ services:
       traefik.http.services.mangadex-dl-wui-vibed.loadbalancer.server.port: 5000
       local.yacht.port.5000: WebUI
 
+  worker:
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    command: rq worker --url redis://redis:6379/0
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
+    volumes:
+      - downloads:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   downloads:
@@ -262,6 +314,7 @@ All configuration via environment variables (see `.env.example`):
 | `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration |
 | `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration (0 = never expire) |
 | `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
+| `JOB_TIMEOUT_SECONDS` | `3600` (1 hour) | Max RQ job execution time |
 
 ## 🧪 Testing
 
