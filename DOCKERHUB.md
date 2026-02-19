@@ -12,7 +12,7 @@ A browser-based web UI for [mangadex-downloader](https://github.com/mansuf/manga
 
 | Tag | Description |
 |-----|-------------|
-| `release` | Latest build from `main` branch |
+| `release` | Latest stable build (`main` branch or git tag) |
 | `v1.2.3` | Specific release tag |
 | `sha-<commit>` | Pinned to an exact commit |
 
@@ -34,18 +34,43 @@ services:
       TASK_TTL_SECONDS: "3600"
       CACHE_TTL_SECONDS: "604800"
       RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads:/downloads/cache
     ports:
       - "5000:5000"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    command: rq worker --url redis://redis:6379/0
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
+    volumes:
+      - downloads:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   downloads:
@@ -70,10 +95,12 @@ services:
       TASK_TTL_SECONDS: "3600"
       CACHE_TTL_SECONDS: "604800"
       RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
     volumes:
       - downloads:/downloads/cache
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - traefik_default
       - default
@@ -89,11 +116,36 @@ services:
       traefik.http.services.mangadex-dl-wui-vibed.loadbalancer.server.port: 5000
       local.yacht.port.5000: WebUI
 
+  worker:
+    image: docker.io/5mdt/mangadex-dl-wui-vibed:release
+    restart: unless-stopped
+    command: rq worker --url redis://redis:6379/0
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CACHE_DIR: /downloads/cache
+      TEMP_DIR: /tmp/mangadex-wui-vibed
+      TASK_TTL_SECONDS: "3600"
+      CACHE_TTL_SECONDS: "604800"
+      RQ_WORKER_COUNT: "3"
+      JOB_TIMEOUT_SECONDS: "3600"
+    volumes:
+      - downloads:/downloads/cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   downloads:
@@ -118,6 +170,7 @@ Set `DOMAIN_NAME` (and optionally `SERVICE_NAME_OVERRIDE`) in your `.env` file o
 | `TASK_TTL_SECONDS` | `3600` | Task record expiration (seconds) |
 | `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (`0` = never expire) |
 | `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
+| `JOB_TIMEOUT_SECONDS` | `3600` | Max RQ job execution time (seconds) |
 
 ---
 
