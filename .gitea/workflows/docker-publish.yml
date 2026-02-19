@@ -114,7 +114,7 @@ jobs:
             docker.io/5mdt/mangadex-dl-wui-vibed
             quay.io/5mdt/mangadex-dl-wui-vibed
           tags: |
-            type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
             type=ref,event=tag
             type=sha,prefix=sha-,format=short
 
@@ -159,7 +159,7 @@ jobs:
             docker.io/5mdt/mangadex-dl-wui-vibed
             quay.io/5mdt/mangadex-dl-wui-vibed
           tags: |
-            type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=release,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
             type=ref,event=tag
 
       - name: Retag existing SHA image
