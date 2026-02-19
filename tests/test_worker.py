@@ -103,3 +103,28 @@ def test_worker_module_importable() -> None:
 
     # Verify module path
     assert app.worker.__name__ == "app.worker"
+
+
+def test_perform_download_stores_metadata(tmp_path: object) -> None:
+    """Redis metadata is stored after a successful download (UT-WKR-007)."""
+    import fakeredis
+
+    from app.cache import get_cached_manga
+    from app.worker import perform_download_job
+
+    fake_redis = fakeredis.FakeRedis(decode_responses=True)
+    series_dir = "/tmp/cache/My Series"
+    files = [f"{series_dir}/ch1.cbz", f"{series_dir}/ch2.cbz"]
+
+    with patch("app.worker.download_manga") as mock_download:
+        mock_download.return_value = files
+
+        with patch("app.tasks._get_cache_redis_connection") as mock_redis:
+            mock_redis.return_value = fake_redis
+
+            perform_download_job("https://mangadex.org/title/abc")
+
+        result = get_cached_manga(fake_redis, "My Series")
+        assert result is not None
+        assert set(result["files"]) == {"ch1.cbz", "ch2.cbz"}  # type: ignore[arg-type]
+        assert result["url"] == "https://mangadex.org/title/abc"

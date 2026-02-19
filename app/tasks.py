@@ -16,15 +16,24 @@ from app.config import Config
 from app.worker import perform_download_job  # noqa: F401 - imported for test patching
 
 _redis_conn = None
+_cache_redis_conn = None
 _queue = None
 
 
 def _get_redis_connection() -> redis.Redis:  # type: ignore[type-arg]
-    """Get or create Redis connection."""
+    """Get or create Redis connection (bytes mode for RQ)."""
     global _redis_conn
     if _redis_conn is None:
         _redis_conn = redis.from_url(Config.REDIS_URL)
     return _redis_conn
+
+
+def _get_cache_redis_connection() -> redis.Redis:  # type: ignore[type-arg]
+    """Get or create Redis connection with decode_responses=True for cache metadata."""
+    global _cache_redis_conn
+    if _cache_redis_conn is None:
+        _cache_redis_conn = redis.from_url(Config.REDIS_URL, decode_responses=True)
+    return _cache_redis_conn
 
 
 def get_queue() -> Queue:

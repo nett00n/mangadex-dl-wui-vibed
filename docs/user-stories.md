@@ -352,6 +352,44 @@
 
 ---
 
+## Epic 8: Cache Browsing
+
+### US-8.1: Browse Cached Manga ✅
+
+**As a** user
+**I want to** see a list of previously downloaded manga
+**So that** I can re-download files without resubmitting URLs
+
+**Acceptance Criteria**:
+- Given I have previously downloaded manga
+- When I navigate to /cache
+- Then I see a list of cached series with file names and download links
+- And each series shows the source MangaDex URL (linked)
+- And I can download any CBZ file directly from the cache page
+
+**Related FRs**: FR-11.1, FR-11.2, FR-11.3, FR-11.4
+**Status**: ✅ **Implemented** - (app/cache.py, app/routes.py, app/templates/cache.html)
+
+---
+
+### US-8.2: Sticky Navigation Bar ✅
+
+**As a** user
+**I want** a persistent navigation bar at the top of every page
+**So that** I can switch between Home and Cache without scrolling
+
+**Acceptance Criteria**:
+- Given I am on any page
+- When I scroll down
+- Then the navigation bar remains visible at the top
+- And links to both Home and Cache pages are present
+- And the active page link is visually highlighted
+
+**Related FRs**: FR-11.8
+**Status**: ✅ **Implemented** - (app/templates/base.html, app/static/style.css)
+
+---
+
 ## Epic 7: Performance
 
 ### US-7.1: Fast Status Checks ✅
@@ -412,3 +450,5 @@
 | US-6.3 | FR-1.1, NFR-5 |
 | US-7.1 | NFR-1 |
 | US-7.2 | NFR-1 |
+| US-8.1 | FR-11.1, FR-11.2, FR-11.3, FR-11.4, FR-11.6, FR-11.7 |
+| US-8.2 | FR-11.8 |

@@ -52,6 +52,7 @@
 | UT-WKR-004 | Job result storage | Successful job | Job completes | Result stored in Redis | US-1.4 |
 | UT-WKR-005 | Job timeout handling | Long-running job | Timeout exceeded | Job canceled, timeout error recorded | US-4.2 |
 | UT-WKR-006 | Worker concurrency | Multiple jobs | Workers process in parallel | Each worker handles one job | US-2.1 |
+| UT-WKR-007 | Metadata stored on success | Mock download returns files | `perform_download_job(url)` | Redis `cache:manga:<series>` key created | US-8.1 |
 
 ---
 
@@ -94,6 +95,23 @@
 | UT-CLN-007 | Scan for job references | Files in cache | Check Redis for active jobs | Only unreferenced files cleaned | US-3.3 |
 | UT-CLN-008 | Remove temp directories | Completed jobs | `cleanup_temp_dirs()` | Temp dirs for done jobs removed | US-4.1 |
 | UT-CLN-009 | TTL zero skips cleanup | TTL=0, expired files | `cleanup_cache(cache_dir, ttl=0)` | No files deleted | US-3.3 |
+| UT-CLN-010 | Remove stale Redis metadata | Expired files, metadata in Redis | `cleanup_cache(cache_dir, ttl)` | Redis metadata deleted | US-8.1 |
+| UT-CLN-011 | Keep metadata with active files | Recent files, metadata in Redis | `cleanup_cache(cache_dir, ttl)` | Redis metadata preserved | US-8.1 |
+
+---
+
+### Module: `app/cache.py`
+
+| Test ID | Test Case | Setup | Action | Expected Result | Related US |
+|---------|-----------|-------|--------|-----------------|------------|
+| UT-CAC-001 | Store manga metadata | Empty Redis | `store_manga_metadata(...)` | Hash written to Redis | US-8.1 |
+| UT-CAC-002 | Update merges files | Existing metadata | `store_manga_metadata(...)` again | Files merged, no duplicates | US-8.1 |
+| UT-CAC-003 | List all cached mangas | Multiple entries | `list_cached_mangas()` | All series returned, sorted | US-8.1 |
+| UT-CAC-004 | List empty Redis | No entries | `list_cached_mangas()` | Returns `[]` | US-8.1 |
+| UT-CAC-005 | Get single series | Series in Redis | `get_cached_manga(name)` | Returns metadata dict | US-8.1 |
+| UT-CAC-006 | Get missing series | Empty Redis | `get_cached_manga(name)` | Returns `None` | US-8.1 |
+| UT-CAC-007 | Delete metadata | Series in Redis | `delete_manga_metadata(name)` | Redis key removed | US-8.1 |
+| UT-CAC-008 | Cleanup stale entries | Metadata, no files on disk | `cleanup_stale_metadata()` | Entry deleted, count=1 | US-8.1 |
 
 ---
 
@@ -172,6 +190,14 @@
 | IT-API-014 | CORS not set | `GET /` | No CORS headers | 200 | NFR-4 |
 | IT-API-015 | Content-Type for CBZ | `GET /api/file/<id>/<file.cbz>` | `Content-Type: application/x-cbz` | 200 | US-1.4 |
 | IT-API-016 | Series prefix in Content-Disposition | `GET /api/file/<id>/<file.cbz>` (file in series subdir) | `Content-Disposition` contains `"Series Name - file.cbz"` | 200 | US-1.4 |
+| IT-CACHE-001 | Cache page renders | `GET /cache` | HTML page with cache listing | 200 | US-8.1 |
+| IT-CACHE-002 | Cache page shows series | `GET /cache` (Redis has data) | Series name and files visible | 200 | US-8.1 |
+| IT-CACHE-003 | Cache file download | `GET /api/cache/<series>/<file.cbz>` | Binary CBZ data | 200 | US-8.1 |
+| IT-CACHE-004 | Cache path traversal in series | `GET /api/cache/../etc/test.cbz` | Rejected | 403/404 | US-5.1 |
+| IT-CACHE-005 | Cache path traversal in filename | `GET /api/cache/series/../../etc/passwd` | Rejected | 403/404 | US-5.1 |
+| IT-CACHE-006 | Cache file not found | `GET /api/cache/NoSeries/missing.cbz` | `{"error": "File not found"}` | 404 | US-8.1 |
+| IT-NAV-001 | Navbar on index page | `GET /` | Navbar with Cache link rendered | 200 | US-8.2 |
+| IT-NAV-002 | Navbar on cache page | `GET /cache` | Navbar with Home link rendered | 200 | US-8.2 |
 
 ---
 

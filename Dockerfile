@@ -53,6 +53,8 @@ RUN uv pip install --system --no-cache .
 
 # Copy application code
 COPY --chown=app:app app/ ./app/
+COPY --chown=app:app assets/logo/32x32.png ./app/static/favicon.png
+COPY --chown=app:app assets/logo/128x128.png ./app/static/logo.png
 
 # Switch to non-root user
 USER app

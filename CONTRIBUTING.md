@@ -100,6 +100,9 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
    |--- polling /api/status/<id> ----------|                       |
    |                                                                |
    |--- GET /api/file/<id>/<name> ----> send_file(cbz) -----------|
+   |
+   |--- GET /cache ------------> list_cached_mangas (Redis) -----> cache.html
+   |--- GET /api/cache/<s>/<f> -> send_file(cbz from CACHE_DIR)
 ```
 
 ### Key Design Decisions
@@ -111,6 +114,7 @@ Browser  -->  Flask (routes.py)  -->  Redis Queue (RQ)  -->  Worker Process  -->
 - **Caching**: Persistent download cache with native `mangadex-dl` skip logic
 - **Cleanup**: Expired task records auto-cleaned; cached files have separate TTL
 - **Persistence**: Jobs survive restarts via Redis
+- **Cache metadata**: Redis hashes (`cache:manga:<series>`) record URL, path, files, and download date per series; cleaned up when all files expire
 
 ### Caching Strategy
 
@@ -146,18 +150,23 @@ mangadex-dl-wui-vibed/
 ├── app/
 │   ├── __init__.py               # Flask app factory
 │   ├── config.py                 # Config (paths, timeouts, TTLs, Redis)
-│   ├── routes.py                 # 4 HTTP endpoints
+│   ├── routes.py                 # 6 HTTP endpoints
 │   ├── downloader.py             # Safe subprocess wrapper for mangadex-dl
 │   ├── worker.py                 # RQ worker job definitions
 │   ├── tasks.py                  # RQ job enqueue/status helpers
-│   ├── cleanup.py                # Background cleanup (expired jobs)
+│   ├── cleanup.py                # Background cleanup (expired jobs + metadata)
+│   ├── cache.py                  # Redis-backed cache metadata CRUD
 │   ├── validators.py             # MangaDex URL validation
-│   ├── templates/index.html      # Web UI template
+│   ├── templates/
+│   │   ├── base.html             # Shared layout with sticky navbar
+│   │   ├── index.html            # Download UI (extends base.html)
+│   │   └── cache.html            # Cache browser (extends base.html)
 │   └── static/
 │       ├── style.css
 │       └── app.js
 └── tests/
     ├── conftest.py
+    ├── test_cache.py
     ├── test_validators.py
     ├── test_downloader.py
     ├── test_tasks.py
@@ -361,6 +370,27 @@ Download a completed CBZ file.
 - `404 Not Found`: Task or file does not exist
 - `410 Gone`: Task expired, file no longer available
 
+### GET /api/cache/{series}/{filename}
+
+Download a cached CBZ file directly from `CACHE_DIR` by series name and filename.
+
+**Response (200 OK):**
+- Content-Type: `application/x-cbz`
+- Content-Disposition: `attachment; filename="{series_name} - {filename}"`
+- Body: CBZ file binary data
+
+**Error Responses:**
+- `403 Forbidden`: Path traversal attempt (`..`) or non-CBZ file requested
+- `404 Not Found`: File does not exist in cache
+
+### GET /cache
+
+Browse previously downloaded manga in the cache.
+
+**Response (200 OK):**
+- Content-Type: `text/html`
+- Body: Cache listing page with series cards and download links
+
 ### GET /
 
 Serve the web UI.
@@ -368,6 +398,21 @@ Serve the web UI.
 **Response (200 OK):**
 - Content-Type: `text/html`
 - Body: HTML page
+
+### Redis Metadata Keys
+
+Cache metadata is stored in Redis hashes with the key pattern `cache:manga:<series_name>`:
+
+| Field | Description |
+|-------|-------------|
+| `url` | Original MangaDex URL |
+| `name` | Series directory name |
+| `sanitized_name` | Human-readable display name |
+| `cache_path` | Full path to series directory on disk |
+| `download_date` | ISO 8601 timestamp of last download |
+| `files` | JSON array of CBZ file basenames |
+
+Metadata is written by `app/worker.py` after each successful download and removed by `app/cleanup.py` when all CBZ files for a series have expired.
 
 ## Frontend Architecture
 

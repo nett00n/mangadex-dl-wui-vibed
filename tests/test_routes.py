@@ -253,3 +253,89 @@ def test_file_download_has_series_prefix_in_filename(
         content_disposition = response.headers.get("Content-Disposition", "")
         assert "Test Series" in content_disposition
         assert filename in content_disposition
+
+
+# --- Cache page and cache file API tests ---
+
+
+def test_cache_page_renders(client: FlaskClient) -> None:
+    """GET /cache returns 200 (IT-CACHE-001)."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = []
+        response = client.get("/cache")
+        assert response.status_code == 200
+
+
+def test_cache_page_shows_series(client: FlaskClient) -> None:
+    """Cache page renders series cards with name and files (IT-CACHE-002)."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = [
+            {
+                "url": "https://mangadex.org/title/abc",
+                "name": "Test Manga",
+                "sanitized_name": "Test Manga",
+                "cache_path": "/cache/Test Manga",
+                "download_date": "2026-01-01T00:00:00+00:00",
+                "files": ["ch1.cbz", "ch2.cbz"],
+            },
+        ]
+        response = client.get("/cache")
+        assert response.status_code == 200
+        assert b"Test Manga" in response.data
+        assert b"ch1.cbz" in response.data
+        assert b"ch2.cbz" in response.data
+
+
+def test_cache_file_download_success(
+    client_with_dirs: FlaskClient,
+    sample_cbz_in_series_dir: Path,
+) -> None:
+    """Serve cached file via /api/cache/<series>/<filename> (IT-CACHE-003)."""
+    series = sample_cbz_in_series_dir.parent.name
+    filename = sample_cbz_in_series_dir.name
+    cache_dir = str(sample_cbz_in_series_dir.parent.parent)
+
+    with patch("app.routes.Config") as mock_config:
+        mock_config.CACHE_DIR = cache_dir
+
+        response = client_with_dirs.get(f"/api/cache/{series}/{filename}")
+        assert response.status_code == 200
+        assert response.data == b"fake cbz content"
+
+
+def test_cache_file_path_traversal_series(client: FlaskClient) -> None:
+    """Reject '..' in series parameter (IT-CACHE-004)."""
+    response = client.get("/api/cache/../etc/passwd/test.cbz")
+    assert response.status_code in [403, 404]
+
+
+def test_cache_file_path_traversal_filename(client: FlaskClient) -> None:
+    """Reject '..' in filename parameter (IT-CACHE-005)."""
+    response = client.get("/api/cache/some-series/../../etc/passwd")
+    assert response.status_code in [403, 404]
+
+
+def test_cache_file_not_found(client: FlaskClient, tmp_path: Path) -> None:
+    """Missing file returns 404 (IT-CACHE-006)."""
+    with patch("app.routes.Config") as mock_config:
+        mock_config.CACHE_DIR = str(tmp_path)
+        response = client.get("/api/cache/NoSeries/missing.cbz")
+        assert response.status_code == 404
+
+
+def test_navbar_present_on_index(client: FlaskClient) -> None:
+    """Navbar with Cache link appears on index page (IT-NAV-001)."""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b'class="navbar"' in response.data
+    assert b"/cache" in response.data
+
+
+def test_navbar_present_on_cache(client: FlaskClient) -> None:
+    """Navbar with Home link appears on cache page (IT-NAV-002)."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = []
+        response = client.get("/cache")
+        assert response.status_code == 200
+        assert b'class="navbar"' in response.data
+        assert b"Home" in response.data

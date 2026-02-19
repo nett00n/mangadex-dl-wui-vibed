@@ -12,9 +12,15 @@ from pathlib import Path
 from flask import Blueprint, jsonify, render_template, request, send_file
 from werkzeug.wrappers.response import Response
 
+from app.cache import list_cached_mangas
 from app.config import Config
 from app.downloader import get_display_filename
-from app.tasks import enqueue_download, get_job_result, get_job_status
+from app.tasks import (
+    _get_cache_redis_connection,
+    enqueue_download,
+    get_job_result,
+    get_job_status,
+)
 from app.validators import is_valid_mangadex_url
 
 bp = Blueprint("main", __name__)
@@ -28,6 +34,56 @@ def index() -> str:
         str: Rendered HTML template
     """
     return render_template("index.html")
+
+
+@bp.route("/cache")
+def cache_page() -> str:
+    """Render the cache browsing page.
+
+    Returns:
+        str: Rendered HTML template listing cached manga series
+    """
+    series = list_cached_mangas(_get_cache_redis_connection())
+    return render_template("cache.html", series=series)
+
+
+@bp.route("/api/cache/<series>/<filename>")
+def api_cache_file(series: str, filename: str) -> tuple[Response, int]:
+    """Serve a cached CBZ file by series name and filename.
+
+    Args:
+        series: Series directory name
+        filename: CBZ filename
+
+    Returns:
+        tuple: File download response or error with HTTP status code
+    """
+    # Security: reject path traversal in series or filename
+    if ".." in series or ".." in filename:
+        return jsonify({"error": "Invalid path"}), 403
+
+    if not filename.endswith(".cbz"):
+        return jsonify({"error": "Invalid file type"}), 403
+
+    cache_base = Path(Config.CACHE_DIR).resolve()
+    file_path = (cache_base / series / filename).resolve()
+
+    # Ensure resolved path is within CACHE_DIR
+    if not str(file_path).startswith(str(cache_base)):
+        return jsonify({"error": "Invalid path"}), 403
+
+    if not file_path.exists():
+        return jsonify({"error": "File not found"}), 404
+
+    return (
+        send_file(
+            file_path,
+            mimetype="application/x-cbz",
+            as_attachment=True,
+            download_name=get_display_filename(str(file_path), Config.CACHE_DIR),
+        ),
+        200,
+    )
 
 
 @bp.route("/api/download", methods=["POST"])

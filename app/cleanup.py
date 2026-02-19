@@ -7,6 +7,7 @@
 
 """Background cleanup tasks for cache and temporary files."""
 
+import contextlib
 import os
 import shutil
 import time
@@ -14,8 +15,9 @@ from pathlib import Path
 
 from rq.job import Job
 
+from app.cache import cleanup_stale_metadata
 from app.config import Config
-from app.tasks import get_queue
+from app.tasks import _get_cache_redis_connection, get_queue
 
 
 def get_active_job_files() -> list[str]:
@@ -130,6 +132,10 @@ def cleanup_cache(cache_dir: str, ttl: int) -> int:
             except OSError:
                 # Directory not empty or other error - skip
                 continue
+
+    # Third pass: remove Redis metadata for series with no remaining files
+    with contextlib.suppress(Exception):
+        cleanup_stale_metadata(_get_cache_redis_connection())
 
     return removed_count
 

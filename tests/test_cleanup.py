@@ -12,8 +12,10 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import fakeredis
 import pytest
 
+from app.cache import get_cached_manga, store_manga_metadata
 from app.cleanup import cleanup_cache, cleanup_temp_dirs, run_cleanup_loop
 
 
@@ -275,3 +277,61 @@ def test_cleanup_ttl_zero_skips_all_files(tmp_path: Path) -> None:
     # File should still exist and no files should be removed
     assert expired_file.exists()
     assert result == 0
+
+
+def test_cleanup_cache_removes_stale_metadata(tmp_path: Path) -> None:
+    """Expired files trigger deletion of Redis metadata (UT-CLN-010)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    series_dir = cache_dir / "Old Manga"
+    series_dir.mkdir()
+    old_chapter = series_dir / "ch1.cbz"
+    old_chapter.write_bytes(b"old")
+    old_time = time.time() - (8 * 24 * 60 * 60)
+    os.utime(old_chapter, (old_time, old_time))
+
+    fake_redis = fakeredis.FakeRedis(decode_responses=True)
+    store_manga_metadata(
+        fake_redis,
+        url="https://mangadex.org/title/old",
+        series_name="Old Manga",
+        cache_path=str(series_dir),
+        files=["ch1.cbz"],
+    )
+
+    with (
+        patch("app.cleanup.get_active_job_files", return_value=[]),
+        patch("app.cleanup._get_cache_redis_connection", return_value=fake_redis),
+    ):
+        cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    assert get_cached_manga(fake_redis, "Old Manga") is None
+
+
+def test_cleanup_cache_keeps_metadata_with_files(tmp_path: Path) -> None:
+    """Series with remaining files keeps Redis metadata (UT-CLN-011)."""
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    series_dir = cache_dir / "Active Manga"
+    series_dir.mkdir()
+    recent_chapter = series_dir / "ch1.cbz"
+    recent_chapter.write_bytes(b"recent")
+
+    fake_redis = fakeredis.FakeRedis(decode_responses=True)
+    store_manga_metadata(
+        fake_redis,
+        url="https://mangadex.org/title/active",
+        series_name="Active Manga",
+        cache_path=str(series_dir),
+        files=["ch1.cbz"],
+    )
+
+    with (
+        patch("app.cleanup.get_active_job_files", return_value=[]),
+        patch("app.cleanup._get_cache_redis_connection", return_value=fake_redis),
+    ):
+        cleanup_cache(str(cache_dir), ttl=7 * 24 * 60 * 60)
+
+    assert get_cached_manga(fake_redis, "Active Manga") is not None

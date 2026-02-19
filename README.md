@@ -1,5 +1,7 @@
 # mangadex-dl-wui-vibed
 
+![Logo](./assets/128x128.png "icon")
+
 A web-based user interface for [mangadex-downloader](https://github.com/mansuf/mangadex-downloader), providing a simple browser interface to download manga from MangaDex as CBZ files.
 ![alt text](docs/static/screenshot.png)
 ![License](https://img.shields.io/badge/license-GPLv3-blue.svg)

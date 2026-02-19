@@ -1,52 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mangadex-dl-wui-vibed</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>mangadex-dl-wui-vibed</h1>
-        <p class="subtitle">Web UI for downloading manga from MangaDex</p>
+{% extends "base.html" %}
 
-        <div class="description">
-            <p>This application provides a simple browser-based interface for downloading manga using the <a href="https://github.com/mansuf/mangadex-downloader" target="_blank" rel="noopener">mangadex-downloader</a> CLI tool. Submit a MangaDex URL and download manga chapters as CBZ files.</p>
-        </div>
+{% block content %}
+<h1>mangadex-dl-wui-vibed</h1>
+<p class="subtitle">Web UI for downloading manga from MangaDex</p>
 
-        <form id="download-form">
-            <div class="form-group">
-                <label for="manga-url">MangaDex URL:</label>
-                <input
-                    type="url"
-                    id="manga-url"
-                    name="url"
-                    placeholder="https://mangadex.org/title/..."
-                    required
-                    aria-describedby="url-help"
-                >
-                <small id="url-help" class="form-text">Enter a MangaDex manga or chapter URL</small>
-            </div>
-            <button type="submit" id="submit-button">Download</button>
-        </form>
+<div class="description">
+    <p>This application provides a simple browser-based interface for downloading manga using the <a
+            href="https://github.com/mansuf/mangadex-downloader" target="_blank" rel="noopener">mangadex-downloader</a>
+        CLI tool. Submit a MangaDex URL and download manga chapters as CBZ files.</p>
+</div>
 
-        <div id="error-container" role="alert" aria-live="polite" class="error-container hidden"></div>
-        <div id="tasks-container" aria-live="polite" class="tasks-container"></div>
-
-        <footer class="disclaimer">
-            <h3>⚠️ Disclaimer</h3>
-            <p><strong>Educational Purpose:</strong> This project is created for educational and personal use only.</p>
-            <p><strong>Not Affiliated:</strong> This project is not affiliated with, endorsed by, or connected to:</p>
-            <ul>
-                <li><a href="https://mangadex.org" target="_blank" rel="noopener">MangaDex.org</a> - the manga reading platform</li>
-                <li><a href="https://github.com/mansuf/mangadex-downloader" target="_blank" rel="noopener">mangadex-downloader</a> - the CLI tool by @mansuf</li>
-            </ul>
-            <p><strong>Responsibility:</strong> Users are responsible for complying with MangaDex's Terms of Service and respecting copyright laws in their jurisdiction. Please support manga creators by purchasing official releases.</p>
-            <p class="license-note">Licensed under GPLv3 • <a href="https://github.com/nett00n/mangadex-dl-wui-vibed" target="_blank" rel="noopener">Source Code</a></p>
-        </footer>
+<form id="download-form">
+    <div class="form-group">
+        <label for="manga-url">MangaDex URL:</label>
+        <input type="url" id="manga-url" name="url" placeholder="https://mangadex.org/title/..." required
+            aria-describedby="url-help">
+        <small id="url-help" class="form-text">Enter a MangaDex manga or chapter URL</small>
     </div>
+    <button type="submit" id="submit-button">Download</button>
+</form>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+<div id="error-container" role="alert" aria-live="polite" class="error-container hidden"></div>
+<div id="tasks-container" aria-live="polite" class="tasks-container"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

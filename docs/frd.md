@@ -201,6 +201,19 @@ User Browser <--> Flask Web Server <--> Redis Queue (RQ) <--> RQ Worker(s) <--> 
 - FR-10.8: Handle RQ job failures gracefully
 - FR-10.9: Never expose stack traces to users
 
+### FR-11: Cache Browsing UI
+
+Users can browse previously downloaded manga from a dedicated cache page.
+
+- FR-11.1: Provide a `/cache` page listing all cached manga series
+- FR-11.2: Display series name, file count, download date, and per-file download links
+- FR-11.3: Series name links back to original MangaDex URL when available
+- FR-11.4: Serve cached CBZ files via `GET /api/cache/<series>/<filename>`
+- FR-11.5: Reject path traversal attempts with 403
+- FR-11.6: Store series metadata in Redis after each successful download
+- FR-11.7: Remove Redis metadata when all files for a series expire from cache
+- FR-11.8: Sticky navigation bar on all pages (Home and Cache)
+
 ## 4. Non-Functional Requirements
 
 ### NFR-1: Performance
@@ -246,7 +259,7 @@ The following are explicitly **not** included in this version:
 - Dynamic queue prioritization
 - Bandwidth throttling
 - MangaDex API integration (uses CLI only)
-- Manual cache management UI
+- Manual cache deletion UI (browsing is supported; deletion is not)
 - Download resume/pause functionality
 - Multi-server deployment (horizontal scaling)
 - Rate limiting per user

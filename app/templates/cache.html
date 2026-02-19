@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Cached Manga</h1>
+<p class="subtitle">Previously downloaded series available for re-download</p>
+
+{% if series %}
+<div class="tasks-container">
+    {% for manga in series %}
+    <div class="task-card">
+        <div class="task-header">
+            <div>
+                <span class="cache-series-name">
+                    {% if manga.url %}
+                    <a href="{{ manga.url }}" target="_blank" rel="noopener">{{ manga.sanitized_name or manga.name
+                        }}</a>
+                    {% else %}
+                    {{ manga.sanitized_name or manga.name }}
+                    {% endif %}
+                </span>
+                {% if manga.download_date %}
+                <span class="cache-meta">Last downloaded: {{ manga.download_date[:10] }}</span>
+                {% endif %}
+            </div>
+            <span class="status-badge finished">{{ manga.files | length }} file{% if manga.files | length != 1 %}s{%
+                endif %}</span>
+        </div>
+        {% if manga.files %}
+        <div class="file-list">
+            <h4>Files:</h4>
+            <ul>
+                {% for filename in manga.files | sort %}
+                <li>
+                    <a href="{{ url_for('main.api_cache_file', series=manga.name, filename=filename) }}"
+                        download="{{ manga.sanitized_name or manga.name }} - {{ filename }}">
+                        {{ manga.sanitized_name or manga.name }} - {{ filename }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="cache-empty">
+    <p>No cached manga found.</p>
+    <p><a href="{{ url_for('main.index') }}">Download some manga</a> to see them here.</p>
+</div>
+{% endif %}
+{% endblock %}
