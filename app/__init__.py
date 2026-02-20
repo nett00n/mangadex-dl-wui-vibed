@@ -15,7 +15,7 @@ from flask import Flask, Response
 
 from app.config import Config
 
-_ASSETS_DIR = Path(__file__).parent.parent / "assets" / "logo"
+_ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
 
 def _load_b64(path: Path) -> str:
@@ -32,8 +32,8 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    favicon_b64 = _load_b64(_ASSETS_DIR / "32x32.png")
-    logo_b64 = _load_b64(_ASSETS_DIR / "128x128.png")
+    favicon_b64 = _load_b64(_ASSETS_DIR / "logo" / "32x32.png")
+    logo_b64 = _load_b64(_ASSETS_DIR / "logo" / "128x128.png")
 
     @app.context_processor
     def inject_images() -> dict[str, str]:
