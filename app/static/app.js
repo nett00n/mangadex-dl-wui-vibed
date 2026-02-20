@@ -199,6 +199,10 @@ const UI = {
      * Render or update task card
      * @param {string} taskId - Task ID
      * @param {Object} status - Status data
+     *
+     * SYNC: This function and app/templates/partials/_manga_card.html render
+     * structurally equivalent cards. When modifying the card layout,
+     * update both to keep the visual structure consistent.
      */
     renderTask(taskId, status) {
         let card = document.getElementById(`task-${taskId}`);

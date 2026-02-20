@@ -1,0 +1,13 @@
+<nav class="navbar">
+    <span class="navbar-brand">
+        <img src="{{ url_for('static', filename='favicon.png') }}" alt="" width="20" height="20"
+            class="navbar-logo">
+        mangadex-dl-wui-vibed
+    </span>
+    <div class="navbar-links">
+        <a href="{{ url_for('main.index') }}"
+            class="navbar-link{% if request.endpoint == 'main.index' %} active{% endif %}">Home</a>
+        <a href="{{ url_for('main.cache_page') }}"
+            class="navbar-link{% if request.endpoint == 'main.cache_page' %} active{% endif %}">Cache</a>
+    </div>
+</nav>

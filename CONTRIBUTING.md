@@ -160,7 +160,13 @@ mangadex-dl-wui-vibed/
 │   ├── templates/
 │   │   ├── base.html             # Shared layout with sticky navbar
 │   │   ├── index.html            # Download UI (extends base.html)
-│   │   └── cache.html            # Cache browser (extends base.html)
+│   │   ├── cache.html            # Cache browser (extends base.html)
+│   │   └── partials/             # Reusable Jinja2 partials ({% include %})
+│   │       ├── _navbar.html      # Sticky nav with brand + Home/Cache links
+│   │       ├── _footer.html      # Disclaimer footer
+│   │       ├── _description.html # App description box (index page)
+│   │       ├── _download_form.html # URL input form + submit button
+│   │       └── _manga_card.html  # Manga card (mirrors JS UI.renderTask())
 │   └── static/
 │       ├── style.css
 │       └── app.js
@@ -447,6 +453,20 @@ The web UI is implemented using vanilla JavaScript with no framework dependencie
 **`app/static/style.css`** - Responsive CSS with mobile support
 
 **`app/templates/index.html`** - HTML structure with accessibility features
+
+### Template Partials
+
+Logical sections are extracted into reusable Jinja2 partials under `app/templates/partials/`:
+
+| Partial | Used in | Content |
+|---------|---------|---------|
+| `_navbar.html` | `base.html` | Sticky nav with brand + Home/Cache links |
+| `_footer.html` | `base.html` | Disclaimer footer with license/links |
+| `_description.html` | `index.html` | Blue-bordered app description box |
+| `_download_form.html` | `index.html` | URL input form + submit button |
+| `_manga_card.html` | `cache.html` | Manga card with header, status badge, file list |
+
+**JS/Jinja2 sync constraint:** `_manga_card.html` and `UI.renderTask()` in `app/static/app.js` render structurally equivalent cards (server-side for the cache page, client-side for active downloads). When modifying the card layout, **both must be updated together** to keep the visual structure consistent.
 
 ### SessionStorage Persistence
 

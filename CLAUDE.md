@@ -54,6 +54,7 @@ Browser --> Flask --> RQ (Redis) --> Worker --> subprocess: mangadex-dl
 - `app/validators.py`: URL validation (ALWAYS validate before download)
 - `app/routes.py`: 4 HTTP endpoints
 - `app/config.py`: Environment variable configuration
+- `app/templates/partials/`: Jinja2 partials (`{% include %}`) for navbar, footer, form, description, and manga card. **`_manga_card.html` must stay in sync with `UI.renderTask()` in `app/static/app.js`** — both render the same card structure (server-side for cache page, client-side for active downloads).
 
 **For complete architecture details, see [CONTRIBUTING.md](CONTRIBUTING.md#project-architecture)**
 

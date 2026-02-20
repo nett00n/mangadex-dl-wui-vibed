@@ -323,6 +323,48 @@ def test_cache_file_not_found(client: FlaskClient, tmp_path: Path) -> None:
         assert response.status_code == 404
 
 
+def test_index_contains_description(client: FlaskClient) -> None:
+    """Description partial renders on index page."""
+    response = client.get("/")
+    assert b'class="description"' in response.data
+
+
+def test_index_contains_download_form(client: FlaskClient) -> None:
+    """Download form partial renders on index page."""
+    response = client.get("/")
+    assert b'id="download-form"' in response.data
+    assert b'id="manga-url"' in response.data
+    assert b'id="submit-button"' in response.data
+
+
+def test_index_contains_footer(client: FlaskClient) -> None:
+    """Footer partial renders on index page."""
+    response = client.get("/")
+    assert b'class="disclaimer"' in response.data
+    assert b"GPLv3" in response.data
+
+
+def test_cache_card_structure(client: FlaskClient) -> None:
+    """Cache page renders manga cards with expected structure."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = [
+            {
+                "url": "https://mangadex.org/title/abc",
+                "name": "Test Manga",
+                "sanitized_name": "Test Manga",
+                "cache_path": "/cache/Test Manga",
+                "download_date": "2026-01-01T00:00:00+00:00",
+                "files": ["ch1.cbz"],
+            },
+        ]
+        response = client.get("/cache")
+        assert b'class="task-card"' in response.data
+        assert b'class="task-header"' in response.data
+        assert b'class="cache-series-name"' in response.data
+        assert b'class="status-badge' in response.data
+        assert b'class="file-list"' in response.data
+
+
 def test_navbar_present_on_index(client: FlaskClient) -> None:
     """Navbar with Cache link appears on index page (IT-NAV-001)."""
     response = client.get("/")

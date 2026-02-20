@@ -4,21 +4,9 @@
 <h1>mangadex-dl-wui-vibed</h1>
 <p class="subtitle">Web UI for downloading manga from MangaDex</p>
 
-<div class="description">
-    <p>This application provides a simple browser-based interface for downloading manga using the <a
-            href="https://github.com/mansuf/mangadex-downloader" target="_blank" rel="noopener">mangadex-downloader</a>
-        CLI tool. Submit a MangaDex URL and download manga chapters as CBZ files.</p>
-</div>
+{% include "partials/_description.html" %}
 
-<form id="download-form">
-    <div class="form-group">
-        <label for="manga-url">MangaDex URL:</label>
-        <input type="url" id="manga-url" name="url" placeholder="https://mangadex.org/title/..." required
-            aria-describedby="url-help">
-        <small id="url-help" class="form-text">Enter a MangaDex manga or chapter URL</small>
-    </div>
-    <button type="submit" id="submit-button">Download</button>
-</form>
+{% include "partials/_download_form.html" %}
 
 <div id="error-container" role="alert" aria-live="polite" class="error-container hidden"></div>
 <div id="tasks-container" aria-live="polite" class="tasks-container"></div>
