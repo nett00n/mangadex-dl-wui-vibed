@@ -8,6 +8,7 @@ dependencies = [
     "redis>=5.0,<6",
     "gunicorn>=23.0,<24",
     "mangadex-downloader>=3.1,<4",
+    "minify-html>=0.15,<1",
 ]
 
 [project.optional-dependencies]
@@ -46,7 +47,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "COM", "C4", "PT", "SIM", "ARG"]
-ignore = ["S603", "S607"]  # subprocess calls are intentional
+ignore = ["S603", "S607", "COM812"]  # subprocess calls are intentional; COM812 conflicts with ruff-format
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "ARG001", "SIM", "S108"]  # asserts, unused args, simplify, and temp file checks OK in tests

@@ -1,10 +1,3 @@
-#
-# Copyright (c) - All Rights Reserved.
-#
-# This project is licenced under the GPLv3.
-# See the LICENSE file for more information.
-#
-
 #!/usr/bin/env bash
 
 #
@@ -34,16 +27,16 @@ FIX=0
 STEP=all
 
 for arg in "$@"; do
-  case "${arg}" in
-    --fix)     FIX=1 ;;
-    --step=*)  STEP="${arg#--step=}" ;;
-    *)         echo "Unknown argument: ${arg}" >&2; exit 1 ;;
-  esac
+    case "${arg}" in
+        --fix)     FIX=1 ;;
+        --step=*)  STEP="${arg#--step=}" ;;
+        *)         echo "Unknown argument: ${arg}" >&2; exit 1 ;;
+    esac
 done
 
 case "${STEP}" in
-  all|fmt|lint|test) ;;
-  *) echo "Unknown step '${STEP}' — valid values: all, fmt, lint, test" >&2; exit 1 ;;
+    all|fmt|lint|test) ;;
+    *) echo "Unknown step '${STEP}' — valid values: all, fmt, lint, test" >&2; exit 1 ;;
 esac
 
 PYTHON_IMAGE="python:3.12-slim"
@@ -52,60 +45,67 @@ REPORTS_DIR="reports"
 HOST_UID="$(id -u)"
 HOST_GID="$(id -g)"
 
-sudo docker volume create "${PIP_CACHE_VOLUME}" > /dev/null
+if command -v docker &>/dev/null; then
+    CONTAINER_CMD="sudo docker"
+elif command -v podman &>/dev/null; then
+    CONTAINER_CMD="podman"
+else
+    echo "error: neither docker nor podman found in PATH" >&2; exit 1
+fi
+
+${CONTAINER_CMD} volume create "${PIP_CACHE_VOLUME}" > /dev/null
 
 # Install packages with version constraints matching pyproject.toml.
 # mangadex-downloader is skipped — not needed for tests.
 INSTALL_CMD="pip install --quiet --root-user-action=ignore --cache-dir /pip-cache \
-  'flask>=3.1,<4' \
-  'rq>=2.0,<3' \
-  'redis>=5.0,<6' \
-  'gunicorn>=23.0,<24' \
-  'pytest>=8.0,<9' \
-  'pytest-cov>=6.0,<7' \
-  'pytest-timeout>=2.3,<3' \
-  'black>=24.0,<25' \
-  'isort>=5.13,<6' \
-  'ruff>=0.8,<1' \
-  'mypy>=1.13,<2' \
-  'types-redis>=4.6,<5' \
-  'fakeredis>=2.26,<3' \
+    'flask>=3.1,<4' \
+    'rq>=2.0,<3' \
+    'redis>=5.0,<6' \
+    'gunicorn>=23.0,<24' \
+    'minify-html>=0.15,<1' \
+    'pytest>=8.0,<9' \
+    'pytest-cov>=6.0,<7' \
+    'pytest-timeout>=2.3,<3' \
+    'ruff>=0.8,<1' \
+    'mypy>=1.13,<2' \
+    'types-redis>=4.6,<5' \
+    'fakeredis>=2.26,<3' \
   && pip install --quiet --root-user-action=ignore --no-deps -e ."
 
 # Build the step command sequence.
 STEPS_CMD=""
 
 if [ "${STEP}" = "all" ] || [ "${STEP}" = "fmt" ]; then
-  if [ "${FIX}" -eq 1 ]; then
-    FMT_CMD="black app/ tests/ && isort app/ tests/"
-  else
-    FMT_CMD="black --check app/ tests/ && isort --check app/ tests/"
-  fi
-  STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${FMT_CMD}"
+    if [ "${FIX}" -eq 1 ]; then
+        FMT_CMD="ruff format app/ tests/"
+    else
+        FMT_CMD="ruff format --check app/ tests/"
+    fi
+    STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${FMT_CMD}"
 fi
 
 if [ "${STEP}" = "all" ] || [ "${STEP}" = "lint" ]; then
-  LINT_CMD="ruff check app/ tests/ \
+    LINT_CMD="ruff check app/ tests/ \
     && mkdir -p ${REPORTS_DIR}/mypy \
     && mypy app/ 2>&1 | tee ${REPORTS_DIR}/mypy/index.txt"
-  STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${LINT_CMD}"
+    STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${LINT_CMD}"
 fi
 
 if [ "${STEP}" = "all" ] || [ "${STEP}" = "test" ]; then
-  TEST_CMD="mkdir -p ${REPORTS_DIR} \
-    && pytest --ignore=tests/test_ui.py -q \
-       --cov=app \
-       --cov-report=term-missing \
-       --cov-report=xml:${REPORTS_DIR}/coverage.xml \
-       --cov-report=html:${REPORTS_DIR}/htmlcov"
-  STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${TEST_CMD}"
+    TEST_CMD="mkdir -p ${REPORTS_DIR} \
+    && pytest -m 'not ui' -q \
+    --cov=app \
+    --cov-report=term-missing \
+    --cov-report=xml:${REPORTS_DIR}/coverage.xml \
+    --cov-report=html:${REPORTS_DIR}/htmlcov"
+    STEPS_CMD="${STEPS_CMD:+${STEPS_CMD} && }${TEST_CMD}"
 fi
 
 # Re-own any generated report files so they belong to the calling user,
 # not root (the default Docker user).
 CHOWN_CMD="chown -R ${HOST_UID}:${HOST_GID} /app/${REPORTS_DIR} /app/.coverage 2>/dev/null || true"
 
-sudo docker run --rm \
+${CONTAINER_CMD} run --rm \
   -v "$(pwd)":/app \
   -v "${PIP_CACHE_VOLUME}":/pip-cache \
   -w /app \

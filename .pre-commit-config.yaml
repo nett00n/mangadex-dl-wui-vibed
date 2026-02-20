@@ -1,16 +1,4 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
-        language_version: python3.12
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
     hooks:
@@ -23,4 +11,3 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-redis]
-        args: [--ignore-missing-imports]

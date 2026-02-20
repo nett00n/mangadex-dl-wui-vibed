@@ -13,5 +13,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>{% include "partials/_app.js" %}</script>
 {% endblock %}

@@ -166,10 +166,12 @@ mangadex-dl-wui-vibed/
 │   │       ├── _footer.html      # Disclaimer footer
 │   │       ├── _description.html # App description box (index page)
 │   │       ├── _download_form.html # URL input form + submit button
-│   │       └── _manga_card.html  # Manga card (mirrors JS UI.renderTask())
+│   │       ├── _manga_card.html  # Manga card (mirrors JS UI.renderTask())
+│   │       ├── _style.css        # Symlink → ../../static/style.css (inline at render)
+│   │       └── _app.js           # Symlink → ../../static/app.js (inline at render)
 │   └── static/
-│       ├── style.css
-│       └── app.js
+│       ├── style.css             # Edit here; inlined via _style.css symlink
+│       └── app.js                # Edit here; inlined via _app.js symlink
 └── tests/
     ├── conftest.py
     ├── test_cache.py
@@ -450,7 +452,9 @@ The web UI is implemented using vanilla JavaScript with no framework dependencie
    - `retryTask(taskId)` - Retry failed download
    - `escapeHtml(text)` - XSS prevention
 
-**`app/static/style.css`** - Responsive CSS with mobile support
+**`app/static/style.css`** - Responsive CSS with mobile support. Inlined at render time via `{% include "partials/_style.css" %}` — edit this file directly; the symlink makes it available to Jinja2.
+
+**`app/static/app.js`** - Client-side task management and polling. Inlined at render time via `{% include "partials/_app.js" %}` — edit this file directly; the symlink makes it available to Jinja2.
 
 **`app/templates/index.html`** - HTML structure with accessibility features
 
@@ -465,8 +469,21 @@ Logical sections are extracted into reusable Jinja2 partials under `app/template
 | `_description.html` | `index.html` | Blue-bordered app description box |
 | `_download_form.html` | `index.html` | URL input form + submit button |
 | `_manga_card.html` | `cache.html` | Manga card with header, status badge, file list |
+| `_style.css` | `base.html` | Symlink → `../../static/style.css` (for `{% include %}` inlining) |
+| `_app.js` | `index.html` | Symlink → `../../static/app.js` (for `{% include %}` inlining) |
 
 **JS/Jinja2 sync constraint:** `_manga_card.html` and `UI.renderTask()` in `app/static/app.js` render structurally equivalent cards (server-side for the cache page, client-side for active downloads). When modifying the card layout, **both must be updated together** to keep the visual structure consistent.
+
+### Inline Asset Strategy
+
+Each page load returns a **single self-contained HTTP response** with no external asset requests:
+
+- **CSS**: Inlined in a `<style>` tag via `{% include "partials/_style.css" %}` in `base.html`
+- **JS**: Inlined in a `<script>` tag via `{% include "partials/_app.js" %}` in `index.html`
+- **Images**: Favicon (`assets/logo/32x32.png`) and logo (`assets/logo/128x128.png`) are read at startup, base64-encoded, and injected as data URIs via a Flask context processor (`favicon_b64`, `logo_b64` template variables) registered in `app/__init__.py`
+- **Minification**: All `text/html` responses are minified (including inline CSS/JS) via a `@app.after_request` hook using `minify-html` with `minify_js=True, minify_css=True`. Minification is always on with no configuration flag.
+
+The CSS/JS source files remain editable in `app/static/` with full IDE support. Symlinks in `app/templates/partials/` make them includable by Jinja2's template loader.
 
 ### SessionStorage Persistence
 

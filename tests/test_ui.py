@@ -16,6 +16,8 @@ Run with: pytest tests/test_ui.py -v
 from typing import TYPE_CHECKING
 
 import pytest
+
+pytest.importorskip("playwright")
 from playwright.sync_api import Page, expect
 
 if TYPE_CHECKING:

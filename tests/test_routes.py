@@ -326,21 +326,24 @@ def test_cache_file_not_found(client: FlaskClient, tmp_path: Path) -> None:
 def test_index_contains_description(client: FlaskClient) -> None:
     """Description partial renders on index page."""
     response = client.get("/")
-    assert b'class="description"' in response.data
+    # Minified HTML omits quotes on single-word attribute values
+    assert b"class=description" in response.data
 
 
 def test_index_contains_download_form(client: FlaskClient) -> None:
     """Download form partial renders on index page."""
     response = client.get("/")
-    assert b'id="download-form"' in response.data
-    assert b'id="manga-url"' in response.data
-    assert b'id="submit-button"' in response.data
+    # Minified HTML omits quotes on single-word attribute values
+    assert b"id=download-form" in response.data
+    assert b"id=manga-url" in response.data
+    assert b"id=submit-button" in response.data
 
 
 def test_index_contains_footer(client: FlaskClient) -> None:
     """Footer partial renders on index page."""
     response = client.get("/")
-    assert b'class="disclaimer"' in response.data
+    # Minified HTML omits quotes on single-word attribute values
+    assert b"class=disclaimer" in response.data
     assert b"GPLv3" in response.data
 
 
@@ -358,18 +361,21 @@ def test_cache_card_structure(client: FlaskClient) -> None:
             },
         ]
         response = client.get("/cache")
-        assert b'class="task-card"' in response.data
-        assert b'class="task-header"' in response.data
-        assert b'class="cache-series-name"' in response.data
+        # Minified HTML omits quotes on single-word attribute values
+        assert b"class=task-card" in response.data
+        assert b"class=task-header" in response.data
+        assert b"class=cache-series-name" in response.data
+        # Multi-word class value keeps quotes in minified HTML
         assert b'class="status-badge' in response.data
-        assert b'class="file-list"' in response.data
+        assert b"class=file-list" in response.data
 
 
 def test_navbar_present_on_index(client: FlaskClient) -> None:
     """Navbar with Cache link appears on index page (IT-NAV-001)."""
     response = client.get("/")
     assert response.status_code == 200
-    assert b'class="navbar"' in response.data
+    # Minified HTML omits quotes on single-word attribute values
+    assert b"class=navbar" in response.data
     assert b"/cache" in response.data
 
 
@@ -379,5 +385,52 @@ def test_navbar_present_on_cache(client: FlaskClient) -> None:
         mock_list.return_value = []
         response = client.get("/cache")
         assert response.status_code == 200
-        assert b'class="navbar"' in response.data
+        # Minified HTML omits quotes on single-word attribute values
+        assert b"class=navbar" in response.data
         assert b"Home" in response.data
+
+
+# --- Inline assets and minification tests ---
+
+
+def test_index_inlines_css(client: FlaskClient) -> None:
+    """CSS is inlined in <style> tag, not linked externally."""
+    response = client.get("/")
+    assert b"<style>" in response.data
+    assert b".navbar" in response.data  # CSS content present
+    assert b'rel="stylesheet"' not in response.data  # no external link
+
+
+def test_index_inlines_js(client: FlaskClient) -> None:
+    """JS is inlined in <script> tag on index page."""
+    response = client.get("/")
+    # Check for a string literal from app.js that the JS minifier won't rename
+    assert b"/api/download" in response.data  # app.js content present
+    assert b"app.js" not in response.data  # no external script src
+
+
+def test_cache_no_inline_js(client: FlaskClient) -> None:
+    """Cache page does not include app.js (no scripts block)."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = []
+        response = client.get("/cache")
+        assert b"const UI" not in response.data
+
+
+def test_favicon_inlined_as_base64(client: FlaskClient) -> None:
+    """Favicon is a data URI, not an external file reference."""
+    response = client.get("/")
+    assert b"data:image/png;base64," in response.data
+
+
+def test_logo_inlined_as_base64(client: FlaskClient) -> None:
+    """Logo image is a data URI."""
+    response = client.get("/")
+    assert b"data:image/png;base64," in response.data
+
+
+def test_html_is_minified(client: FlaskClient) -> None:
+    """Rendered HTML is minified (no excessive whitespace)."""
+    response = client.get("/")
+    html = response.get_data(as_text=True)
+    assert "\n    \n" not in html

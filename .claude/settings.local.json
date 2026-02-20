@@ -18,7 +18,8 @@
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebSearch",
-      "Bash(bash scripts/ci.sh:*)"
+      "Bash(bash scripts/*.sh:*)",
+      "Bash(python3: scripts/*.py:*)"
     ]
   }
 }
