@@ -20,6 +20,7 @@ import pytest
         pytest.param("TASK_TTL_SECONDS", 3600, "UT-CFG-005"),
         pytest.param("CACHE_TTL_SECONDS", 604800, "UT-CFG-007"),
         pytest.param("RQ_WORKER_COUNT", 3, "UT-CFG-009"),
+        pytest.param("POLL_INTERVAL_SECONDS", 2, "UT-CFG-014"),
     ],
 )
 def test_config_defaults(
@@ -44,6 +45,7 @@ def test_config_defaults(
         "TASK_TTL_SECONDS",
         "CACHE_TTL_SECONDS",
         "RQ_WORKER_COUNT",
+        "POLL_INTERVAL_SECONDS",
     ]:
         monkeypatch.delenv(var, raising=False)
 
@@ -69,6 +71,7 @@ def test_config_defaults(
         pytest.param("TASK_TTL_SECONDS", "7200", 7200, "UT-CFG-006"),
         pytest.param("CACHE_TTL_SECONDS", "1209600", 1209600, "UT-CFG-008"),
         pytest.param("RQ_WORKER_COUNT", "5", 5, "UT-CFG-010"),
+        pytest.param("POLL_INTERVAL_SECONDS", "5", 5, "UT-CFG-015"),
     ],
 )
 def test_config_custom_values(
@@ -109,6 +112,7 @@ def test_config_temp_dir_default(monkeypatch: pytest.MonkeyPatch) -> None:
         "TASK_TTL_SECONDS",
         "CACHE_TTL_SECONDS",
         "RQ_WORKER_COUNT",
+        "POLL_INTERVAL_SECONDS",
     ]:
         monkeypatch.delenv(var, raising=False)
 
@@ -150,3 +154,24 @@ def test_config_zero_cache_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
     importlib.reload(app.config)
 
     assert app.config.Config.CACHE_TTL_SECONDS == 0
+
+
+def test_config_poll_interval_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that POLL_INTERVAL_SECONDS defaults to 2 (UT-CFG-016)."""
+    monkeypatch.delenv("POLL_INTERVAL_SECONDS", raising=False)
+
+    import app.config
+
+    importlib.reload(app.config)
+
+    assert app.config.Config.POLL_INTERVAL_SECONDS == 2
+
+
+def test_config_poll_interval_zero_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that POLL_INTERVAL_SECONDS=0 is rejected (UT-CFG-017)."""
+    monkeypatch.setenv("POLL_INTERVAL_SECONDS", "0")
+
+    import app.config
+
+    with pytest.raises(ValueError, match="POLL_INTERVAL_SECONDS must be >= 1"):
+        importlib.reload(app.config)

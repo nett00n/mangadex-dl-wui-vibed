@@ -89,7 +89,7 @@ const TaskManager = {
      * @param {string} taskId - Task ID
      * @param {number} interval - Polling interval in ms (default: 2000)
      */
-    startPolling(taskId, interval = 2000) {
+    startPolling(taskId, interval = window.AppConfig?.pollIntervalMs ?? 2000) {
         if (this.pollingIntervals.has(taskId)) {
             return; // Already polling
         }

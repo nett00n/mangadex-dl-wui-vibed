@@ -6,15 +6,17 @@ services:
       args:
         PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
     ports:
-      - "5000:5000"
+      - "${PUBLIC_PORT:-5000:5000}"
     environment:
-      REDIS_URL: redis://redis:6379/0
-      CACHE_DIR: /downloads/cache
-      TEMP_DIR: /tmp/mangadex-wui-vibed
-      TASK_TTL_SECONDS: "3600"
-      CACHE_TTL_SECONDS: "604800"
-      RQ_WORKER_COUNT: "3"
-      JOB_TIMEOUT_SECONDS: "3600"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
+      CACHE_DIR: "${CACHE_DIR:-/downloads/cache}"
+      TEMP_DIR: "${TEMP_DIR:-/tmp/mangadex-wui-vibed}"
+      TASK_TTL_SECONDS: "${TASK_TTL_SECONDS:-3600}"
+      CACHE_TTL_SECONDS: "${CACHE_TTL_SECONDS:-604800}"
+      RQ_WORKER_COUNT: "${RQ_WORKER_COUNT:-3}"
+      JOB_TIMEOUT_SECONDS: "${JOB_TIMEOUT_SECONDS:-3600}"
+      DELAY_REQUESTS_SECONDS: "${DELAY_REQUESTS_SECONDS:-0}"
+      POLL_INTERVAL_SECONDS: "${POLL_INTERVAL_SECONDS:-5}"
     volumes:
       - downloads_cache:/downloads/cache
     depends_on:
@@ -39,13 +41,15 @@ services:
         PYTHON_VERSION: ${PYTHON_VERSION:-3.12}
     command: rq worker --url redis://redis:6379/0
     environment:
-      REDIS_URL: redis://redis:6379/0
-      CACHE_DIR: /downloads/cache
-      TEMP_DIR: /tmp/mangadex-wui-vibed
-      TASK_TTL_SECONDS: "3600"
-      CACHE_TTL_SECONDS: "604800"
-      RQ_WORKER_COUNT: "3"
-      JOB_TIMEOUT_SECONDS: "3600"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
+      CACHE_DIR: "${CACHE_DIR:-/downloads/cache}"
+      TEMP_DIR: "${TEMP_DIR:-/tmp/mangadex-wui-vibed}"
+      TASK_TTL_SECONDS: "${TASK_TTL_SECONDS:-3600}"
+      CACHE_TTL_SECONDS: "${CACHE_TTL_SECONDS:-604800}"
+      RQ_WORKER_COUNT: "${RQ_WORKER_COUNT:-3}"
+      JOB_TIMEOUT_SECONDS: "${JOB_TIMEOUT_SECONDS:-3600}"
+      DELAY_REQUESTS_SECONDS: "${DELAY_REQUESTS_SECONDS:-0}"
+      POLL_INTERVAL_SECONDS: "${POLL_INTERVAL_SECONDS:-5}"
     volumes:
       - downloads_cache:/downloads/cache
     depends_on:

@@ -571,15 +571,18 @@ All configuration is via environment variables. See `.env.example` for a complet
 
 ### Environment Variables
 
-| Variable            | Default                    | Description                                                      |
-| ------------------- | -------------------------- | ---------------------------------------------------------------- |
-| `REDIS_URL`         | `redis://localhost:6379/0` | Redis connection URL. For auth: `redis://:password@host:port/db` |
-| `CACHE_DIR`         | `/downloads/cache`         | Persistent cache directory for downloaded manga                  |
-| `TEMP_DIR`          | `/tmp/mangadex-wui-vibed`  | Temporary task working directories                               |
-| `TASK_TTL_SECONDS`  | `3600` (1 hour)            | Task record expiration time                                      |
-| `CACHE_TTL_SECONDS` | `604800` (7 days)          | Cached file expiration time (0 = never expire)                   |
-| `RQ_WORKER_COUNT`   | `3`                        | Number of concurrent download workers                            |
-| `PYTHON_VERSION`    | `3.12`                     | Python version (Docker build only)                               |
+| Variable                 | Default                    | Description                                                       |
+| ------------------------ | -------------------------- | ----------------------------------------------------------------- |
+| `REDIS_URL`              | `redis://localhost:6379/0` | Redis connection URL. For auth: `redis://:password@host:port/db`  |
+| `CACHE_DIR`              | `/downloads/cache`         | Persistent cache directory for downloaded manga                   |
+| `TEMP_DIR`               | `/tmp/mangadex-wui-vibed`  | Temporary task working directories                                |
+| `TASK_TTL_SECONDS`       | `3600` (1 hour)            | Task record expiration time                                       |
+| `CACHE_TTL_SECONDS`      | `604800` (7 days)          | Cached file expiration time (0 = never expire)                    |
+| `RQ_WORKER_COUNT`        | `3`                        | Number of concurrent download workers                             |
+| `DELAY_REQUESTS_SECONDS` | `1`                        | Delay between mangadex-dl HTTP requests in seconds (0 = no delay) |
+| `POLL_INTERVAL_SECONDS`  | `2`                        | Frontend status polling interval in seconds (min: 1)              |
+| `PUBLIC_PORT`            | `5000:5000`                | Host:container port mapping (Docker only)                         |
+| `PYTHON_VERSION`         | `3.12`                     | Python version (Docker build only)                                |
 
 ### Development vs Production
 
@@ -614,6 +617,7 @@ mangadex-dl \
   --input-pos "*" \                                        # Download all chapters (wildcard)
   --progress-bar-layout none \                             # Disable progress bar for cleaner output
   --filename-chapter "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}" \  # Volume+chapter in filename
+  --delay-requests DELAY_REQUESTS_SECONDS \                # Throttle requests (env: DELAY_REQUESTS_SECONDS, default: 1)
   <url>
 ```
 

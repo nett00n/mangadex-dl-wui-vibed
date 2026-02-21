@@ -18,6 +18,7 @@ from app.downloader import (
     download_manga,
     get_display_filename,
     parse_progress,
+    run_mangadex_dl,
     sanitize_filename,
     scan_for_cbz,
 )
@@ -324,3 +325,58 @@ def test_get_display_filename_special_chars(tmp_path: Path) -> None:
     result = get_display_filename(str(cbz), str(cache))
 
     assert result == "My_ Manga - Chapter 1.cbz"
+
+
+# --- DELAY_REQUESTS_SECONDS configuration tests ---
+
+
+def test_run_mangadex_dl_passes_default_delay() -> None:
+    """run_mangadex_dl passes --delay-requests 1 by default (UT-DL-020)."""
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    mock_proc.stdout = ""
+    mock_proc.stderr = ""
+
+    with patch("app.downloader.which", return_value="/usr/bin/mangadex-dl"):
+        with patch("subprocess.run", return_value=mock_proc) as mock_run:
+            run_mangadex_dl("https://mangadex.org/title/abc", "/tmp/cache")
+
+    args = mock_run.call_args[0][0]
+    idx = args.index("--delay-requests")
+    assert args[idx + 1] == "1"
+
+
+def test_run_mangadex_dl_passes_configured_delay() -> None:
+    """run_mangadex_dl uses Config.DELAY_REQUESTS_SECONDS in CLI args (UT-DL-021)."""
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    mock_proc.stdout = ""
+    mock_proc.stderr = ""
+
+    with patch("app.downloader.which", return_value="/usr/bin/mangadex-dl"):
+        with patch("subprocess.run", return_value=mock_proc) as mock_run:
+            with patch("app.downloader.Config") as mock_config:
+                mock_config.DELAY_REQUESTS_SECONDS = 5
+                run_mangadex_dl("https://mangadex.org/title/abc", "/tmp/cache")
+
+    args = mock_run.call_args[0][0]
+    idx = args.index("--delay-requests")
+    assert args[idx + 1] == "5"
+
+
+def test_run_mangadex_dl_passes_zero_delay() -> None:
+    """run_mangadex_dl passes '0' when DELAY_REQUESTS_SECONDS is 0 (UT-DL-022)."""
+    mock_proc = MagicMock()
+    mock_proc.returncode = 0
+    mock_proc.stdout = ""
+    mock_proc.stderr = ""
+
+    with patch("app.downloader.which", return_value="/usr/bin/mangadex-dl"):
+        with patch("subprocess.run", return_value=mock_proc) as mock_run:
+            with patch("app.downloader.Config") as mock_config:
+                mock_config.DELAY_REQUESTS_SECONDS = 0
+                run_mangadex_dl("https://mangadex.org/title/abc", "/tmp/cache")
+
+    args = mock_run.call_args[0][0]
+    idx = args.index("--delay-requests")
+    assert args[idx + 1] == "0"

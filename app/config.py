@@ -45,3 +45,9 @@ class Config:
     )
     RQ_WORKER_COUNT = _get_positive_int_from_env("RQ_WORKER_COUNT", 3)
     JOB_TIMEOUT_SECONDS = _get_positive_int_from_env("JOB_TIMEOUT_SECONDS", 3600)
+    DELAY_REQUESTS_SECONDS = _get_positive_int_from_env(
+        "DELAY_REQUESTS_SECONDS",
+        1,
+        min_value=0,
+    )
+    POLL_INTERVAL_SECONDS = _get_positive_int_from_env("POLL_INTERVAL_SECONDS", 2)

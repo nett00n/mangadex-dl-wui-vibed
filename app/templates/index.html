@@ -13,5 +13,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script>window.AppConfig = { pollIntervalMs: {{ poll_interval_ms }}};</script>
 <script>{% include "partials/_app.js" %}</script>
 {% endblock %}

@@ -12,6 +12,7 @@ import subprocess
 from pathlib import Path
 from shutil import which
 
+from app.config import Config
 from app.validators import is_valid_mangadex_url
 
 
@@ -57,7 +58,7 @@ def run_mangadex_dl(
         "--filename-chapter",
         "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}",
         "--delay-requests",  # https://mangadex-dl.mansuf.link/en/stable/cli_usage/advanced/throttle_requests.html
-        "1",
+        str(Config.DELAY_REQUESTS_SECONDS),
         url,
     ]
 

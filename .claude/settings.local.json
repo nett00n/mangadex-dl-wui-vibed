@@ -22,5 +22,10 @@
       "Bash(python3: scripts/*.py:*)",
       "Bash(echo:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "ripgrep",
+    "git"
+  ]
 }

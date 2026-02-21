@@ -518,3 +518,35 @@ def test_html_is_minified(client: FlaskClient) -> None:
     response = client.get("/")
     html = response.get_data(as_text=True)
     assert "\n    \n" not in html
+
+
+def test_index_inlines_poll_config(client: FlaskClient) -> None:
+    """Index page injects window.AppConfig with pollIntervalMs (IT-POLL-001)."""
+    response = client.get("/")
+    assert b"AppConfig" in response.data
+    assert b"pollIntervalMs" in response.data
+
+
+def test_index_poll_interval_default_is_2000ms(client: FlaskClient) -> None:
+    """Index page injects default poll interval of 2000 ms (IT-POLL-002).
+
+    The JS minifier converts 2000 to 2e3 in the output.
+    """
+    with patch("app.routes.Config") as mock_config:
+        mock_config.POLL_INTERVAL_SECONDS = 2
+        response = client.get("/")
+    assert b"pollIntervalMs" in response.data
+    # JS minifier rewrites 2000 as 2e3
+    assert b"2e3" in response.data
+
+
+def test_index_poll_interval_custom_value(client: FlaskClient) -> None:
+    """Index page injects custom POLL_INTERVAL_SECONDS * 1000 ms (IT-POLL-003).
+
+    The JS minifier converts 5000 to 5e3 in the output.
+    """
+    with patch("app.routes.Config") as mock_config:
+        mock_config.POLL_INTERVAL_SECONDS = 5
+        response = client.get("/")
+    # JS minifier rewrites 5000 as 5e3
+    assert b"5e3" in response.data

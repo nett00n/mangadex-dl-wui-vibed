@@ -33,7 +33,10 @@ def index() -> str:
     Returns:
         str: Rendered HTML template
     """
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        poll_interval_ms=Config.POLL_INTERVAL_SECONDS * 1000,
+    )
 
 
 @bp.route("/cache")
