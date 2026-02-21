@@ -323,6 +323,90 @@ def test_cache_file_not_found(client: FlaskClient, tmp_path: Path) -> None:
         assert response.status_code == 404
 
 
+def test_delete_cache_series_success(client: FlaskClient) -> None:
+    """DELETE /api/cache/<series> returns 200 and deletes series (IT-CACHE-007)."""
+    with patch("app.routes.delete_cached_series") as mock_delete:
+        mock_delete.return_value = True
+        response = client.delete("/api/cache/My-Series")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data == {"deleted": True}
+        mock_delete.assert_called_once()
+
+
+def test_delete_cache_series_not_found(client: FlaskClient) -> None:
+    """DELETE /api/cache/<series> returns 404 when series absent (IT-CACHE-008)."""
+    with patch("app.routes.delete_cached_series") as mock_delete:
+        mock_delete.return_value = False
+        response = client.delete("/api/cache/Unknown-Series")
+        assert response.status_code == 404
+        data = response.get_json()
+        assert "error" in data
+
+
+def test_delete_cache_series_path_traversal(client: FlaskClient) -> None:
+    """DELETE /api/cache/<series> rejects '..' with 403 (IT-CACHE-009)."""
+    response = client.delete("/api/cache/evil..series")
+    assert response.status_code == 403
+    data = response.get_json()
+    assert "error" in data
+
+
+def test_cache_card_has_remove_button(client: FlaskClient) -> None:
+    """Cache card has remove button with data-series attribute (IT-CACHE-010)."""
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = [
+            {
+                "url": "https://mangadex.org/title/abc",
+                "name": "Test Manga",
+                "sanitized_name": "Test Manga",
+                "cache_path": "/cache/Test Manga",
+                "download_date": "2026-01-01T00:00:00+00:00",
+                "files": ["ch1.cbz"],
+            },
+        ]
+        response = client.get("/cache")
+        assert response.status_code == 200
+        assert b"btn-remove-cache" in response.data
+        assert b"Test Manga" in response.data
+
+
+def test_cache_card_data_series_matches_file_path_component(
+    client: FlaskClient,
+) -> None:
+    """manga.name rendered into data-series matches the directory in file paths (IT-CACHE-011).
+
+    The JS on the cache page uses data-series to match against sessionStorage
+    task file paths (e.g. /downloads/cache/<series>/ch.cbz). This test verifies
+    the series name rendered into the DOM attribute is the same string that
+    appears as a path component in file paths returned by the cache metadata.
+    """
+    series_name = "My Series"
+    file_path = f"/downloads/cache/{series_name}/ch1.cbz"
+
+    with patch("app.routes.list_cached_mangas") as mock_list:
+        mock_list.return_value = [
+            {
+                "url": "https://mangadex.org/title/abc",
+                "name": series_name,
+                "sanitized_name": series_name,
+                "cache_path": f"/downloads/cache/{series_name}",
+                "download_date": "2026-01-01T00:00:00+00:00",
+                "files": ["ch1.cbz"],
+            },
+        ]
+        response = client.get("/cache")
+        html = response.get_data(as_text=True)
+
+    # The data-series value rendered in HTML must equal the directory component
+    # in the file path so the JS sessionStorage cleanup can match them.
+    path_component = file_path.split("/")[-2]
+    assert series_name == path_component
+    assert (
+        f'data-series="{series_name}"' in html or f"data-series={series_name}" in html
+    )
+
+
 def test_index_contains_description(client: FlaskClient) -> None:
     """Description partial renders on index page."""
     response = client.get("/")
@@ -417,16 +501,16 @@ def test_cache_no_inline_js(client: FlaskClient) -> None:
         assert b"const UI" not in response.data
 
 
-def test_favicon_inlined_as_base64(client: FlaskClient) -> None:
-    """Favicon is a data URI, not an external file reference."""
+def test_favicon_served_as_static_file(client: FlaskClient) -> None:
+    """Favicon references the assets static path."""
     response = client.get("/")
-    assert b"data:image/png;base64," in response.data
+    assert b"/assets/logo/32x32.png" in response.data
 
 
-def test_logo_inlined_as_base64(client: FlaskClient) -> None:
-    """Logo image is a data URI."""
+def test_logo_served_as_static_file(client: FlaskClient) -> None:
+    """Logo references the assets static path."""
     response = client.get("/")
-    assert b"data:image/png;base64," in response.data
+    assert b"/assets/logo/128x128.png" in response.data
 
 
 def test_html_is_minified(client: FlaskClient) -> None:

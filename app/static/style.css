@@ -1,3 +1,31 @@
+:root {
+    /* Nord palette */
+    --color-bg: #ECEFF4;
+    --color-border: #D8DEE9;
+    --color-surface: #E5E9F0;
+    --color-dark: #2E3440;
+    --color-secondary: #3B4252;
+    --color-muted: #4C566A;
+    --color-disabled: #9199AA;
+    --color-primary-light: #81A1C1;
+    --color-primary: #5E81AC;
+    --color-primary-hover: #4C6E9A;
+    --color-success: #A3BE8C;
+    --color-warning: #D08770;
+    --color-warning-hover: #B8714E;
+    --color-danger-surface: #F0DEDE;
+    --color-danger: #BF616A;
+    --color-danger-hover: #A5515A;
+
+    /* Tokens */
+    --radius: 4px;
+    --font-size-sm: 12px;
+    --font-size-meta: 0.85em;
+    --transition: 0.2s;
+    --shadow-btn: 0 2px 0 rgba(0, 0, 0, 0.15);
+    --shadow-card: 0 1px 3px rgba(46, 52, 64, 0.08);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,10 +35,9 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f5f5f5;
-    padding: 20px;
-    padding-top: 0;
+    color: var(--color-dark);
+    background-color: var(--color-bg);
+    padding: 0 20px 20px;
 }
 
 /* Sticky navigation bar */
@@ -18,17 +45,17 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
-    background-color: #2c3e50;
+    background-color: var(--color-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(46, 52, 64, 0.12);
     margin: 0 -20px 20px -20px;
 }
 
 .navbar-brand {
-    color: #ecf0f1;
+    color: var(--color-dark);
     font-weight: 600;
     font-size: 1.1em;
     display: flex;
@@ -47,21 +74,21 @@ body {
 }
 
 .navbar-link {
-    color: #bdc3c7;
+    color: var(--color-muted);
     text-decoration: none;
     font-size: 0.95em;
     padding: 4px 8px;
-    border-radius: 4px;
-    transition: color 0.2s, background-color 0.2s;
+    border-radius: var(--radius);
+    transition: color var(--transition), background-color var(--transition);
 }
 
 .navbar-link:hover {
-    color: #ecf0f1;
-    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-dark);
+    background-color: rgba(46, 52, 64, 0.08);
 }
 
 .navbar-link.active {
-    color: #3498db;
+    color: var(--color-primary);
     font-weight: 600;
 }
 
@@ -70,45 +97,36 @@ body {
     margin: 0 auto;
     background: white;
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 4px rgba(46, 52, 64, 0.1);
 }
 
 /* Cache page empty state */
 .cache-empty {
     text-align: center;
     padding: 40px 20px;
-    color: #7f8c8d;
+    color: var(--color-muted);
 }
 
 .cache-series-name {
     font-size: 1.1em;
     font-weight: 600;
-    color: #2c3e50;
-}
-
-.cache-series-name a {
-    color: #2c3e50;
-    text-decoration: none;
-}
-
-.cache-series-name a:hover {
-    text-decoration: underline;
+    color: var(--color-dark);
 }
 
 .cache-meta {
-    font-size: 0.85em;
-    color: #7f8c8d;
+    font-size: var(--font-size-meta);
+    color: var(--color-muted);
     margin-top: 4px;
 }
 
 h1 {
-    color: #2c3e50;
+    color: var(--color-dark);
     margin-bottom: 10px;
 }
 
 p {
-    color: #7f8c8d;
+    color: var(--color-muted);
     margin-bottom: 30px;
 }
 
@@ -118,26 +136,16 @@ p {
 }
 
 .description {
-    background-color: #ecf0f1;
+    background-color: var(--color-surface);
     padding: 15px;
-    border-radius: 4px;
+    border-radius: var(--radius);
     margin-bottom: 25px;
-    border-left: 4px solid #3498db;
+    border-left: 4px solid var(--color-primary);
 }
 
 .description p {
     margin-bottom: 0;
-    color: #2c3e50;
-    line-height: 1.6;
-}
-
-.description a {
-    color: #3498db;
-    text-decoration: none;
-}
-
-.description a:hover {
-    text-decoration: underline;
+    color: var(--color-dark);
 }
 
 .form-group {
@@ -148,47 +156,57 @@ label {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--color-dark);
 }
 
 input[type="url"] {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
     font-size: 14px;
+    background-color: var(--color-bg);
+    color: var(--color-dark);
 }
 
 input[type="url"]:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: var(--color-primary);
 }
 
 button {
-    background-color: #3498db;
+    background-color: var(--color-primary);
     color: white;
     padding: 12px 24px;
-    border: none;
-    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius);
     font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s;
+    box-shadow: var(--shadow-btn);
+    transition: background-color var(--transition);
 }
 
 button:hover {
-    background-color: #2980b9;
+    background-color: var(--color-primary-hover);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: none;
 }
 
 button:disabled {
-    background-color: #95a5a6;
+    background-color: var(--color-disabled);
+    box-shadow: none;
     cursor: not-allowed;
 }
 
 .status-container {
     margin-top: 30px;
     padding: 20px;
-    background-color: #ecf0f1;
-    border-radius: 4px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
     display: none;
 }
 
@@ -200,9 +218,9 @@ button:disabled {
 .error-container {
     margin-top: 20px;
     padding: 12px;
-    background-color: #e74c3c;
+    background-color: var(--color-danger);
     color: white;
-    border-radius: 4px;
+    border-radius: var(--radius);
     font-weight: 500;
 }
 
@@ -214,8 +232,8 @@ button:disabled {
 .form-text {
     display: block;
     margin-top: 4px;
-    color: #7f8c8d;
-    font-size: 12px;
+    color: var(--color-muted);
+    font-size: var(--font-size-sm);
 }
 
 /* Tasks container */
@@ -225,12 +243,12 @@ button:disabled {
 
 /* Task card */
 .task-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card);
 }
 
 .task-header {
@@ -241,14 +259,14 @@ button:disabled {
 }
 
 .task-id {
-    font-size: 12px;
-    color: #7f8c8d;
+    font-size: var(--font-size-sm);
+    color: var(--color-muted);
     font-family: monospace;
 }
 
 .task-url {
     display: block;
-    font-size: 0.85em;
+    font-size: var(--font-size-meta);
     opacity: 0.8;
 }
 
@@ -264,53 +282,58 @@ button:disabled {
 
 .task-actions button {
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
 }
 
 .btn-retry {
-    background-color: #f39c12;
+    background-color: var(--color-warning);
 }
 
 .btn-retry:hover {
-    background-color: #e67e22;
+    background-color: var(--color-warning-hover);
 }
 
 .btn-dismiss {
-    background-color: #95a5a6;
+    background-color: var(--color-disabled);
 }
 
 .btn-dismiss:hover {
-    background-color: #7f8c8d;
+    background-color: var(--color-muted);
+}
+
+.btn-remove-cache {
+    background-color: var(--color-danger);
+}
+
+.btn-remove-cache:hover {
+    background-color: var(--color-danger-hover);
 }
 
 /* Status badge */
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
+    border-radius: var(--radius);
+    font-size: var(--font-size-sm);
     font-weight: 600;
+    color: white;
     text-transform: uppercase;
 }
 
 .status-badge.queued {
-    background-color: #95a5a6;
-    color: white;
+    background-color: var(--color-disabled);
 }
 
 .status-badge.started {
-    background-color: #3498db;
-    color: white;
+    background-color: var(--color-primary);
 }
 
 .status-badge.finished {
-    background-color: #27ae60;
-    color: white;
+    background-color: var(--color-success);
 }
 
 .status-badge.failed {
-    background-color: #e74c3c;
-    color: white;
+    background-color: var(--color-danger);
 }
 
 /* Progress bar */
@@ -321,26 +344,26 @@ button:disabled {
 .progress-bar {
     width: 100%;
     height: 24px;
-    background-color: #ecf0f1;
-    border-radius: 4px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background-color: #3498db;
+    background-color: var(--color-primary);
     transition: width 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     font-weight: 500;
 }
 
 .progress-fill.indeterminate {
     width: 100%;
-    background: linear-gradient(90deg, #3498db 25%, #2980b9 50%, #3498db 75%);
+    background: linear-gradient(90deg, var(--color-primary) 25%, var(--color-primary-light) 50%, var(--color-primary) 75%);
     background-size: 200% 100%;
     animation: progress-indeterminate 1.5s linear infinite;
 }
@@ -359,9 +382,9 @@ button:disabled {
 .error-message {
     margin-top: 12px;
     padding: 12px;
-    background-color: #fdeaea;
-    border-left: 4px solid #e74c3c;
-    color: #c0392b;
+    background-color: var(--color-danger-surface);
+    border-left: 4px solid var(--color-danger);
+    color: var(--color-danger-hover);
     font-size: 14px;
 }
 
@@ -373,7 +396,7 @@ button:disabled {
 .file-list h4 {
     margin-bottom: 8px;
     font-size: 14px;
-    color: #2c3e50;
+    color: var(--color-dark);
 }
 
 .file-list ul {
@@ -383,20 +406,15 @@ button:disabled {
 
 .file-list li {
     padding: 8px;
-    background-color: #ecf0f1;
-    border-radius: 4px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
     margin-bottom: 4px;
 }
 
 .file-list a {
-    color: #3498db;
-    text-decoration: none;
+    color: var(--color-primary);
     display: flex;
     align-items: center;
-}
-
-.file-list a:hover {
-    text-decoration: underline;
 }
 
 .file-list a::before {
@@ -404,11 +422,27 @@ button:disabled {
     margin-right: 8px;
 }
 
+/* Shared link style: no underline by default, underline on hover */
+.cache-series-name a,
+.description a,
+.disclaimer a,
+.file-list a,
+.navbar-link {
+    text-decoration: none;
+}
+
+.cache-series-name a:hover,
+.description a:hover,
+.disclaimer a:hover,
+.file-list a:hover {
+    text-decoration: underline;
+}
+
 /* Disclaimer footer */
 .disclaimer {
     margin-top: 40px;
     padding-top: 30px;
-    border-top: 2px solid #bdc3c7;
+    border-top: 2px solid var(--color-border);
 }
 
 .disclaimer-logo {
@@ -418,47 +452,44 @@ button:disabled {
 }
 
 .disclaimer h3 {
-    color: #e74c3c;
+    color: var(--color-danger);
     font-size: 1.1em;
     margin-bottom: 15px;
 }
 
-.disclaimer p {
-    color: #555;
-    margin-bottom: 12px;
+.disclaimer p,
+.disclaimer ul {
+    color: var(--color-secondary);
     font-size: 0.9em;
     line-height: 1.6;
 }
 
-.disclaimer strong {
-    color: #2c3e50;
+.disclaimer p {
+    margin-bottom: 12px;
 }
 
 .disclaimer ul {
     margin: 10px 0 15px 20px;
-    color: #555;
-    font-size: 0.9em;
 }
 
 .disclaimer li {
     margin-bottom: 5px;
 }
 
-.disclaimer a {
-    color: #3498db;
-    text-decoration: none;
+.disclaimer strong {
+    color: var(--color-dark);
 }
 
-.disclaimer a:hover {
-    text-decoration: underline;
+.disclaimer a {
+    color: var(--color-primary);
 }
 
 .license-note {
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid #ecf0f1;
-    font-size: 0.85em;
-    color: #95a5a6;
+    border-top: 1px solid var(--color-surface);
+    font-size: var(--font-size-meta);
+    color: var(--color-disabled);
     text-align: center;
 }
 

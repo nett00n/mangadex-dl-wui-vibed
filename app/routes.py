@@ -12,7 +12,7 @@ from pathlib import Path
 from flask import Blueprint, jsonify, render_template, request, send_file
 from werkzeug.wrappers.response import Response
 
-from app.cache import list_cached_mangas
+from app.cache import delete_cached_series, list_cached_mangas
 from app.config import Config
 from app.downloader import get_display_filename
 from app.tasks import (
@@ -45,6 +45,26 @@ def cache_page() -> str:
     """
     series = list_cached_mangas(_get_cache_redis_connection())
     return render_template("cache.html", series=series)
+
+
+@bp.route("/api/cache/<series>", methods=["DELETE"])
+def api_delete_cache(series: str) -> tuple[Response, int]:
+    """Delete a cached manga series: files on disk and Redis metadata.
+
+    Args:
+        series: Series directory name
+
+    Returns:
+        tuple: JSON response with HTTP status code
+    """
+    if ".." in series:
+        return jsonify({"error": "Invalid series name"}), 403
+
+    deleted = delete_cached_series(_get_cache_redis_connection(), series)
+    if not deleted:
+        return jsonify({"error": "Not found"}), 404
+
+    return jsonify({"deleted": True}), 200
 
 
 @bp.route("/api/cache/<series>/<filename>")

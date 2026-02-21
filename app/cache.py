@@ -8,6 +8,7 @@
 """Redis-backed metadata for cached manga series."""
 
 import json
+from contextlib import suppress
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -131,6 +132,37 @@ def get_cached_manga(
         "download_date": entry.get("download_date", ""),
         "files": files,
     }
+
+
+def delete_cached_series(
+    redis_conn: redis.Redis,  # type: ignore[type-arg]
+    series_name: str,
+) -> bool:
+    """Delete all CBZ files and Redis metadata for a cached manga series.
+
+    Args:
+        redis_conn: Redis connection instance
+        series_name: Series name to delete
+
+    Returns:
+        bool: True if found and deleted, False if series not in Redis
+    """
+    metadata = get_cached_manga(redis_conn, series_name)
+    if metadata is None:
+        return False
+
+    cache_path = Path(str(metadata.get("cache_path", "")))
+    files: list[str] = metadata.get("files", [])  # type: ignore[assignment]
+
+    for filename in files:
+        with suppress(FileNotFoundError):
+            (cache_path / filename).unlink()
+
+    with suppress(FileNotFoundError, OSError):
+        cache_path.rmdir()
+
+    delete_manga_metadata(redis_conn, series_name)
+    return True
 
 
 def delete_manga_metadata(

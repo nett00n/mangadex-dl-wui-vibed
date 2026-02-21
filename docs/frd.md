@@ -213,6 +213,7 @@ Users can browse previously downloaded manga from a dedicated cache page.
 - FR-11.6: Store series metadata in Redis after each successful download
 - FR-11.7: Remove Redis metadata when all files for a series expire from cache
 - FR-11.8: Sticky navigation bar on all pages (Home and Cache)
+- FR-11.9: Allow users to delete a cached series immediately via `DELETE /api/cache/<series>`: delete all CBZ files from disk, remove the series directory if empty, and remove the Redis metadata; reject path traversal with 403; return 404 if series not found
 
 ## 4. Non-Functional Requirements
 
@@ -259,7 +260,7 @@ The following are explicitly **not** included in this version:
 - Dynamic queue prioritization
 - Bandwidth throttling
 - MangaDex API integration (uses CLI only)
-- Manual cache deletion UI (browsing is supported; deletion is not)
+- Bulk cache deletion (only per-series deletion is supported)
 - Download resume/pause functionality
 - Multi-server deployment (horizontal scaling)
 - Rate limiting per user

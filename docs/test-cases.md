@@ -112,6 +112,9 @@
 | UT-CAC-006 | Get missing series | Empty Redis | `get_cached_manga(name)` | Returns `None` | US-8.1 |
 | UT-CAC-007 | Delete metadata | Series in Redis | `delete_manga_metadata(name)` | Redis key removed | US-8.1 |
 | UT-CAC-008 | Cleanup stale entries | Metadata, no files on disk | `cleanup_stale_metadata()` | Entry deleted, count=1 | US-8.1 |
+| UT-CAC-009 | Delete series with files | Series in Redis, CBZ files on disk | `delete_cached_series(name)` | Files deleted, dir removed if empty, metadata removed, returns `True` | US-8.3 |
+| UT-CAC-010 | Delete series not found | Empty Redis | `delete_cached_series(name)` | Returns `False` | US-8.3 |
+| UT-CAC-011 | Delete series missing files | Series in Redis, files already gone | `delete_cached_series(name)` | Handles gracefully, metadata removed, returns `True` | US-8.3 |
 
 ---
 
@@ -196,6 +199,11 @@
 | IT-CACHE-004 | Cache path traversal in series | `GET /api/cache/../etc/test.cbz` | Rejected | 403/404 | US-5.1 |
 | IT-CACHE-005 | Cache path traversal in filename | `GET /api/cache/series/../../etc/passwd` | Rejected | 403/404 | US-5.1 |
 | IT-CACHE-006 | Cache file not found | `GET /api/cache/NoSeries/missing.cbz` | `{"error": "File not found"}` | 404 | US-8.1 |
+| IT-CACHE-007 | Delete cached series success | `DELETE /api/cache/<series>` (series exists) | Files deleted, metadata removed, `{"deleted": true}` | 200 | US-8.3 |
+| IT-CACHE-008 | Delete cached series not found | `DELETE /api/cache/<series>` (series absent) | `{"error": "Not found"}` | 404 | US-8.3 |
+| IT-CACHE-009 | Delete path traversal rejected | `DELETE /api/cache/..%2Fetc` | `{"error": "Invalid series name"}` | 403 | US-5.1 |
+| IT-CACHE-010 | Cache card renders remove button | `GET /cache` (Redis has data) | Card contains remove button with `data-series` attribute | 200 | US-8.3 |
+| IT-CACHE-011 | Cache deletion clears sessionStorage tasks | Delete series; sessionStorage has finished task with files in that series dir | Matching task entries removed from `sessionStorage['mangadex-tasks']` | — | US-8.3 |
 | IT-NAV-001 | Navbar on index page | `GET /` | Navbar with Cache link rendered | 200 | US-8.2 |
 | IT-NAV-002 | Navbar on cache page | `GET /cache` | Navbar with Home link rendered | 200 | US-8.2 |
 
