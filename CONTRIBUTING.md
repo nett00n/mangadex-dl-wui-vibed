@@ -378,6 +378,24 @@ Download a completed CBZ file.
 - `404 Not Found`: Task or file does not exist
 - `410 Gone`: Task expired, file no longer available
 
+### DELETE /api/cache/{series}
+
+Delete a cached manga series: removes all CBZ files from disk, the series directory if empty, and the Redis metadata entry.
+
+**Path Parameters:**
+- `series` — Series directory name (no `..` allowed)
+
+**Response (200 OK):**
+```json
+{"deleted": true}
+```
+
+**Error Responses:**
+- `403 Forbidden`: `..` detected in series name
+- `404 Not Found`: Series not found in Redis metadata
+
+---
+
 ### GET /api/cache/{series}/{filename}
 
 Download a cached CBZ file directly from `CACHE_DIR` by series name and filename.
@@ -476,11 +494,8 @@ Logical sections are extracted into reusable Jinja2 partials under `app/template
 
 ### Inline Asset Strategy
 
-Each page load returns a **single self-contained HTTP response** with no external asset requests:
-
 - **CSS**: Inlined in a `<style>` tag via `{% include "partials/_style.css" %}` in `base.html`
 - **JS**: Inlined in a `<script>` tag via `{% include "partials/_app.js" %}` in `index.html`
-- **Images**: Favicon (`assets/logo/32x32.png`) and logo (`assets/logo/128x128.png`) are read at startup, base64-encoded, and injected as data URIs via a Flask context processor (`favicon_b64`, `logo_b64` template variables) registered in `app/__init__.py`
 - **Minification**: All `text/html` responses are minified (including inline CSS/JS) via a `@app.after_request` hook using `minify-html` with `minify_js=True, minify_css=True`. Minification is always on with no configuration flag.
 
 The CSS/JS source files remain editable in `app/static/` with full IDE support. Symlinks in `app/templates/partials/` make them includable by Jinja2's template loader.

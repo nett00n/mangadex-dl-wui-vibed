@@ -56,6 +56,8 @@ def run_mangadex_dl(
         "none",
         "--filename-chapter",
         "Vol. {chapter.volume} Ch. {chapter.chapter}{file_ext}",
+        "--delay-requests",  # https://mangadex-dl.mansuf.link/en/stable/cli_usage/advanced/throttle_requests.html
+        "1",
         url,
     ]
 

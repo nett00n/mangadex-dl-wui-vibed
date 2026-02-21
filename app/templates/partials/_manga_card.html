@@ -17,8 +17,11 @@ update both to keep the visual structure consistent. #}
             <span class="cache-meta">Last downloaded: {{ manga.download_date[:10] }}</span>
             {% endif %}
         </div>
-        <span class="status-badge finished">{{ manga.files | length }} file{% if manga.files | length != 1 %}s{%
-            endif %}</span>
+        <div class="task-actions">
+            <span class="status-badge finished">{{ manga.files | length }} file{% if manga.files | length != 1 %}s{%
+                endif %}</span>
+            <button class="btn-remove-cache" data-series="{{ manga.name }}" type="button">Remove from cache</button>
+        </div>
     </div>
     {% if manga.files %}
     <div class="file-list">

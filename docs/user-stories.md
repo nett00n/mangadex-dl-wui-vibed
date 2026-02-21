@@ -372,6 +372,27 @@
 
 ---
 
+### US-8.3: Remove Cached Manga Series
+
+**As a** user
+**I want to** remove a cached manga series from the cache page
+**So that** I can free up disk space immediately without waiting for TTL expiry
+
+**Acceptance Criteria**:
+- Given I am on the /cache page
+- When I click "Remove from cache" on a manga card
+- Then a confirmation dialog appears
+- And upon confirmation, the CBZ files are deleted from disk
+- And the Redis metadata is removed
+- And the card disappears from the page
+- And any sessionStorage tasks whose downloaded files belonged to that series are removed
+- And a 404 is returned if the series does not exist
+
+**Related FRs**: FR-11.9
+**Status**: ✅ **Implemented** - (app/cache.py, app/routes.py, app/templates/cache.html, app/templates/partials/_manga_card.html)
+
+---
+
 ### US-8.2: Sticky Navigation Bar ✅
 
 **As a** user
@@ -452,3 +473,4 @@
 | US-7.2     | NFR-1                                                  |
 | US-8.1     | FR-11.1, FR-11.2, FR-11.3, FR-11.4, FR-11.6, FR-11.7   |
 | US-8.2     | FR-11.8                                                |
+| US-8.3     | FR-11.9                                                |

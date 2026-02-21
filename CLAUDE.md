@@ -54,7 +54,7 @@ Browser --> Flask --> RQ (Redis) --> Worker --> subprocess: mangadex-dl
 - `app/validators.py`: URL validation (ALWAYS validate before download)
 - `app/routes.py`: 4 HTTP endpoints
 - `app/config.py`: Environment variable configuration
-- `app/__init__.py`: Flask app factory — also registers a context processor that injects `favicon_b64` and `logo_b64` (base64 data URIs from `assets/logo/32x32.png` and `assets/logo/128x128.png`) and an `after_request` hook that minifies all `text/html` responses using `minify-html` (`minify_js=True, minify_css=True`; always on)
+- `app/__init__.py`: Flask app factory — configures `static_folder="../assets"` and `static_url_path="/assets"` so images are served directly from `assets/logo/` at `/assets/logo/*.png`; also registers an `after_request` hook that minifies all `text/html` responses using `minify-html` (`minify_js=True, minify_css=True`; always on)
 - `app/templates/partials/`: Jinja2 partials (`{% include %}`) for navbar, footer, form, description, and manga card. **`_manga_card.html` must stay in sync with `UI.renderTask()` in `app/static/app.js`** — both render the same card structure (server-side for cache page, client-side for active downloads). `_style.css` and `_app.js` are symlinks to `../../static/style.css` and `../../static/app.js` — they are inlined via `{% include %}` in `base.html` and `index.html` respectively.
 
 **For complete architecture details, see [CONTRIBUTING.md](CONTRIBUTING.md#project-architecture)**

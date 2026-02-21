@@ -5,7 +5,7 @@
 <p class="subtitle">Previously downloaded series available for re-download</p>
 
 {% if series %}
-<div class="tasks-container">
+<div class="tasks-container" id="cache-container">
     {% for manga in series %}
     {% include "partials/_manga_card.html" %}
     {% endfor %}
@@ -16,4 +16,42 @@
     <p><a href="{{ url_for('main.index') }}">Download some manga</a> to see them here.</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('cache-container') && document.getElementById('cache-container').addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-remove-cache');
+    if (!btn) return;
+    const series = btn.dataset.series;
+    if (!confirm('Remove "' + series + '" from cache? This will delete all downloaded files.')) return;
+    btn.disabled = true;
+    fetch('/api/cache/' + encodeURIComponent(series), {method: 'DELETE'})
+        .then(function(r) {
+            if (r.ok) {
+                const card = btn.closest('.task-card');
+                if (card) card.remove();
+                const raw = sessionStorage.getItem('mangadex-tasks');
+                if (raw) {
+                    try {
+                        const tasks = JSON.parse(raw);
+                        let changed = false;
+                        for (const id of Object.keys(tasks)) {
+                            const files = tasks[id].files;
+                            if (Array.isArray(files) && files.some(function(f) { return f.split('/').includes(series); })) {
+                                delete tasks[id];
+                                changed = true;
+                            }
+                        }
+                        if (changed) sessionStorage.setItem('mangadex-tasks', JSON.stringify(tasks));
+                    } catch {}
+                }
+            } else {
+                r.json().then(function(d) { alert('Error: ' + (d.error || 'Unknown error')); });
+                btn.disabled = false;
+            }
+        })
+        .catch(function() { alert('Network error. Please try again.'); btn.disabled = false; });
+});
+</script>
 {% endblock %}
