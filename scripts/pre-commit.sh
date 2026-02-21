@@ -46,9 +46,9 @@ INSTALL_CMD="pip install --quiet --root-user-action=ignore --cache-dir /pip-cach
 RUN_CMD="pre-commit run --all-files ${EXTRA_ARGS}"
 
 ${CONTAINER_CMD} run --rm \
-    -v "$(pwd)":/app \
-    -v "${PIP_CACHE_VOLUME}":/pip-cache \
-    -v "${PRECOMMIT_CACHE_VOLUME}":/root/.cache/pre-commit \
-    -w /app \
-    "${PYTHON_IMAGE}" \
-    bash -c "set -euo pipefail; ${PREREQS_CMD} && ${INSTALL_CMD} && ${RUN_CMD}"
+-v "$(pwd)":/app \
+-v "${PIP_CACHE_VOLUME}":/pip-cache \
+-v "${PRECOMMIT_CACHE_VOLUME}":/root/.cache/pre-commit \
+-w /app \
+"${PYTHON_IMAGE}" \
+bash -c "set -euo pipefail; ${PREREQS_CMD} && ${INSTALL_CMD} && ${RUN_CMD}"

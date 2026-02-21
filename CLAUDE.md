@@ -103,15 +103,15 @@ if not validate_mangadex_url(url):
 
 All configuration via environment variables (see `.env.example`):
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection (auth: `redis://:password@host:port/db`) |
-| `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
-| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task directories |
-| `TASK_TTL_SECONDS` | `3600` | Task record expiration (1 hour) |
-| `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (7 days; 0 = never expire) |
-| `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
-| `JOB_TIMEOUT_SECONDS` | `3600` | Max RQ job execution time (1 hour) |
+| Variable              | Default                    | Purpose                                                   |
+| --------------------- | -------------------------- | --------------------------------------------------------- |
+| `REDIS_URL`           | `redis://localhost:6379/0` | Redis connection (auth: `redis://:password@host:port/db`) |
+| `CACHE_DIR`           | `/downloads/cache`         | Persistent manga cache                                    |
+| `TEMP_DIR`            | `/tmp/mangadex-wui-vibed`  | Temporary task directories                                |
+| `TASK_TTL_SECONDS`    | `3600`                     | Task record expiration (1 hour)                           |
+| `CACHE_TTL_SECONDS`   | `604800`                   | Cached file expiration (7 days; 0 = never expire)         |
+| `RQ_WORKER_COUNT`     | `3`                        | Concurrent download workers                               |
+| `JOB_TIMEOUT_SECONDS` | `3600`                     | Max RQ job execution time (1 hour)                        |
 
 ## Development Workflow
 

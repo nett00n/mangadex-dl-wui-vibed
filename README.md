@@ -119,11 +119,11 @@ docker pull docker.io/5mdt/mangadex-dl-wui-vibed:release
 docker pull quay.io/5mdt/mangadex-dl-wui-vibed:release
 ```
 
-| Tag | Updated on |
-|-----|-----------|
-| `release` | every push to `main` |
-| `v1.2.3` | git tag pushes |
-| `sha-<commit>` | every build |
+| Tag            | Updated on           |
+| -------------- | -------------------- |
+| `release`      | every push to `main` |
+| `v1.2.3`       | git tag pushes       |
+| `sha-<commit>` | every build          |
 
 #### Minimal docker-compose.yml
 
@@ -306,15 +306,15 @@ Browser --> Flask (routes.py) --> Redis Queue (RQ) --> Worker --> subprocess: ma
 
 All configuration via environment variables (see `.env.example`):
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL |
-| `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
-| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task directories |
-| `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration |
-| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration (0 = never expire) |
-| `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
-| `JOB_TIMEOUT_SECONDS` | `3600` (1 hour) | Max RQ job execution time |
+| Variable              | Default                    | Description                               |
+| --------------------- | -------------------------- | ----------------------------------------- |
+| `REDIS_URL`           | `redis://localhost:6379/0` | Redis connection URL                      |
+| `CACHE_DIR`           | `/downloads/cache`         | Persistent manga cache                    |
+| `TEMP_DIR`            | `/tmp/mangadex-wui-vibed`  | Temporary task directories                |
+| `TASK_TTL_SECONDS`    | `3600` (1 hour)            | Task record expiration                    |
+| `CACHE_TTL_SECONDS`   | `604800` (7 days)          | Cached file expiration (0 = never expire) |
+| `RQ_WORKER_COUNT`     | `3`                        | Concurrent download workers               |
+| `JOB_TIMEOUT_SECONDS` | `3600` (1 hour)            | Max RQ job execution time                 |
 
 ## 🧪 Testing
 

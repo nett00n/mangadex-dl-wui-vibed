@@ -13,20 +13,20 @@ A browser-based web UI for [mangadex-downloader](https://github.com/mansuf/manga
 
 The image is published to multiple registries:
 
-| Registry | Image |
-|----------|-------|
-| Docker Hub | `5mdt/mangadex-dl-wui-vibed` |
-| Quay.io | `quay.io/5mdt/mangadex-dl-wui-vibed` |
+| Registry   | Image                                |
+| ---------- | ------------------------------------ |
+| Docker Hub | `5mdt/mangadex-dl-wui-vibed`         |
+| Quay.io    | `quay.io/5mdt/mangadex-dl-wui-vibed` |
 
 ---
 
 ## Tags
 
-| Tag | Description |
-|-----|-------------|
-| `release` | Latest build from `main` branch |
-| `v1.2.3` | Specific release tag |
-| `sha-<commit>` | Pinned to an exact commit |
+| Tag            | Description                     |
+| -------------- | ------------------------------- |
+| `release`      | Latest build from `main` branch |
+| `v1.2.3`       | Specific release tag            |
+| `sha-<commit>` | Pinned to an exact commit       |
 
 **Platforms:** `linux/amd64`, `linux/arm64`
 
@@ -122,14 +122,14 @@ Set `DOMAIN_NAME` (and optionally `SERVICE_NAME_OVERRIDE`) in your `.env` file o
 
 ## Configuration
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL |
-| `CACHE_DIR` | `/downloads/cache` | Persistent manga cache |
-| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task directories |
-| `TASK_TTL_SECONDS` | `3600` | Task record expiration (seconds) |
-| `CACHE_TTL_SECONDS` | `604800` | Cached file expiration (`0` = never expire) |
-| `RQ_WORKER_COUNT` | `3` | Concurrent download workers |
+| Variable            | Default                    | Description                                 |
+| ------------------- | -------------------------- | ------------------------------------------- |
+| `REDIS_URL`         | `redis://localhost:6379/0` | Redis connection URL                        |
+| `CACHE_DIR`         | `/downloads/cache`         | Persistent manga cache                      |
+| `TEMP_DIR`          | `/tmp/mangadex-wui-vibed`  | Temporary task directories                  |
+| `TASK_TTL_SECONDS`  | `3600`                     | Task record expiration (seconds)            |
+| `CACHE_TTL_SECONDS` | `604800`                   | Cached file expiration (`0` = never expire) |
+| `RQ_WORKER_COUNT`   | `3`                        | Concurrent download workers                 |
 
 ---
 

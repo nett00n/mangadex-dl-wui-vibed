@@ -267,11 +267,11 @@ The script:
 
 Generated into `reports/` (git-ignored):
 
-| File | Contents |
-|------|----------|
-| `reports/coverage.xml` | Cobertura XML coverage (for CI tools) |
-| `reports/htmlcov/index.html` | Interactive HTML coverage report |
-| `reports/mypy/index.txt` | mypy type-check output |
+| File                         | Contents                              |
+| ---------------------------- | ------------------------------------- |
+| `reports/coverage.xml`       | Cobertura XML coverage (for CI tools) |
+| `reports/htmlcov/index.html` | Interactive HTML coverage report      |
+| `reports/mypy/index.txt`     | mypy type-check output                |
 
 Use this when your local `.venv` is unavailable or you want a clean-room verification before pushing.
 
@@ -411,14 +411,14 @@ Serve the web UI.
 
 Cache metadata is stored in Redis hashes with the key pattern `cache:manga:<series_name>`:
 
-| Field | Description |
-|-------|-------------|
-| `url` | Original MangaDex URL |
-| `name` | Series directory name |
-| `sanitized_name` | Human-readable display name |
-| `cache_path` | Full path to series directory on disk |
-| `download_date` | ISO 8601 timestamp of last download |
-| `files` | JSON array of CBZ file basenames |
+| Field            | Description                           |
+| ---------------- | ------------------------------------- |
+| `url`            | Original MangaDex URL                 |
+| `name`           | Series directory name                 |
+| `sanitized_name` | Human-readable display name           |
+| `cache_path`     | Full path to series directory on disk |
+| `download_date`  | ISO 8601 timestamp of last download   |
+| `files`          | JSON array of CBZ file basenames      |
 
 Metadata is written by `app/worker.py` after each successful download and removed by `app/cleanup.py` when all CBZ files for a series have expired.
 
@@ -462,15 +462,15 @@ The web UI is implemented using vanilla JavaScript with no framework dependencie
 
 Logical sections are extracted into reusable Jinja2 partials under `app/templates/partials/`:
 
-| Partial | Used in | Content |
-|---------|---------|---------|
-| `_navbar.html` | `base.html` | Sticky nav with brand + Home/Cache links |
-| `_footer.html` | `base.html` | Disclaimer footer with license/links |
-| `_description.html` | `index.html` | Blue-bordered app description box |
-| `_download_form.html` | `index.html` | URL input form + submit button |
-| `_manga_card.html` | `cache.html` | Manga card with header, status badge, file list |
-| `_style.css` | `base.html` | Symlink → `../../static/style.css` (for `{% include %}` inlining) |
-| `_app.js` | `index.html` | Symlink → `../../static/app.js` (for `{% include %}` inlining) |
+| Partial               | Used in      | Content                                                           |
+| --------------------- | ------------ | ----------------------------------------------------------------- |
+| `_navbar.html`        | `base.html`  | Sticky nav with brand + Home/Cache links                          |
+| `_footer.html`        | `base.html`  | Disclaimer footer with license/links                              |
+| `_description.html`   | `index.html` | Blue-bordered app description box                                 |
+| `_download_form.html` | `index.html` | URL input form + submit button                                    |
+| `_manga_card.html`    | `cache.html` | Manga card with header, status badge, file list                   |
+| `_style.css`          | `base.html`  | Symlink → `../../static/style.css` (for `{% include %}` inlining) |
+| `_app.js`             | `index.html` | Symlink → `../../static/app.js` (for `{% include %}` inlining)    |
 
 **JS/Jinja2 sync constraint:** `_manga_card.html` and `UI.renderTask()` in `app/static/app.js` render structurally equivalent cards (server-side for the cache page, client-side for active downloads). When modifying the card layout, **both must be updated together** to keep the visual structure consistent.
 
@@ -556,15 +556,15 @@ All configuration is via environment variables. See `.env.example` for a complet
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. For auth: `redis://:password@host:port/db` |
-| `CACHE_DIR` | `/downloads/cache` | Persistent cache directory for downloaded manga |
-| `TEMP_DIR` | `/tmp/mangadex-wui-vibed` | Temporary task working directories |
-| `TASK_TTL_SECONDS` | `3600` (1 hour) | Task record expiration time |
-| `CACHE_TTL_SECONDS` | `604800` (7 days) | Cached file expiration time (0 = never expire) |
-| `RQ_WORKER_COUNT` | `3` | Number of concurrent download workers |
-| `PYTHON_VERSION` | `3.12` | Python version (Docker build only) |
+| Variable            | Default                    | Description                                                      |
+| ------------------- | -------------------------- | ---------------------------------------------------------------- |
+| `REDIS_URL`         | `redis://localhost:6379/0` | Redis connection URL. For auth: `redis://:password@host:port/db` |
+| `CACHE_DIR`         | `/downloads/cache`         | Persistent cache directory for downloaded manga                  |
+| `TEMP_DIR`          | `/tmp/mangadex-wui-vibed`  | Temporary task working directories                               |
+| `TASK_TTL_SECONDS`  | `3600` (1 hour)            | Task record expiration time                                      |
+| `CACHE_TTL_SECONDS` | `604800` (7 days)          | Cached file expiration time (0 = never expire)                   |
+| `RQ_WORKER_COUNT`   | `3`                        | Number of concurrent download workers                            |
+| `PYTHON_VERSION`    | `3.12`                     | Python version (Docker build only)                               |
 
 ### Development vs Production
 
